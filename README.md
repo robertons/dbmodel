@@ -19,6 +19,7 @@ python setup.py install
 ## Generate Entity Model
 
 ```python
+import os
 import dbmodel
 
 dbmodel.Make(dir = os.path.dirname(os.path.abspath(__file__)), db_user="user", db_password="pass", db_host="host", db_port=3306, db_database="dbname")
