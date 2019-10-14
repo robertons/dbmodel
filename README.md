@@ -25,7 +25,7 @@ dbmodel.Make(dir = os.path.dirname(os.path.abspath(__file__)), db_user="user", d
 
 ```
 
-## Make will create folder on your project like this:
+> Make will create folder on your project like this:
 
 .
 ├── ...
