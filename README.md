@@ -26,7 +26,7 @@ dbmodel.Make(dir = os.path.dirname(os.path.abspath(__file__)), db_user="user", d
 ```
 
 > Make will create folder on your project like this:
-
+>
 .
 ├── ...
 ├── model                    # Entity Model Folder
@@ -35,3 +35,4 @@ dbmodel.Make(dir = os.path.dirname(os.path.abspath(__file__)), db_user="user", d
 │   ├── table_b              # TableB Entity Class
 │   └── table_b              # TableC Entity Class
 └── ...
+>
