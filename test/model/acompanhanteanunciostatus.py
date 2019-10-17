@@ -15,5 +15,5 @@ class AcompanhanteAnuncioStatus(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteAnuncio", key="id_anuncio_status", reference="id")
+	@ObjectList(name="AcompanhanteAnuncio", key="id_anuncio_status", reference="id", table="acompanhantes_anuncios")
 	def acompanhantes_anuncios(self):pass

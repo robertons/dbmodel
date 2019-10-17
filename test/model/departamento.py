@@ -24,11 +24,11 @@ class Departamento(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="Modulo", key="id_departamento", reference="id")
+	@ObjectList(name="Modulo", key="id_departamento", reference="id", table="modulos")
 	def modulos(self):pass
 
-	@ObjectList(name="PerfilDepartamento", key="id_departamento", reference="id")
+	@ObjectList(name="PerfilDepartamento", key="id_departamento", reference="id", table="perfis_departamentos")
 	def perfis_departamentos(self):pass
 
-	@ObjectList(name="UsuarioDepartamento", key="id_departamento", reference="id")
+	@ObjectList(name="UsuarioDepartamento", key="id_departamento", reference="id", table="usuarios_departamentos")
 	def usuarios_departamentos(self):pass

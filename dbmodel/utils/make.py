@@ -48,7 +48,7 @@ def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False,
     cursor.execute("SELECT TABLE_NAME FROM information_schema.tables where table_schema='{database}' ORDER BY TABLE_NAME ASC".format(database=db_database))
     tables = cursor.fetchall()
 
-    cursor.execute("SELECT DISTINCT information_schema.key_column_usage.table_name, information_schema.key_column_usage.column_name, information_schema.key_column_usage.referenced_table_name, information_schema.key_column_usage.referenced_column_name FROM information_schema.key_column_usage, information_schema.tables AS tables, information_schema.tables AS referenced_tables WHERE information_schema.key_column_usage.table_schema='{database}' AND tables.table_name = information_schema.key_column_usage.table_name AND referenced_tables.table_name = information_schema.key_column_usage.referenced_table_name AND information_schema.key_column_usage.referenced_table_name IS NOT NULL  ORDER BY TABLE_NAME ASC".format(database=db_database))
+    cursor.execute("SELECT DISTINCT information_schema.key_column_usage.constraint_name, information_schema.key_column_usage.table_name, information_schema.key_column_usage.column_name, information_schema.key_column_usage.referenced_table_name, information_schema.key_column_usage.referenced_column_name FROM information_schema.key_column_usage, information_schema.tables AS tables, information_schema.tables AS referenced_tables WHERE information_schema.key_column_usage.table_schema='{database}' AND tables.table_name = information_schema.key_column_usage.table_name AND referenced_tables.table_name = information_schema.key_column_usage.referenced_table_name AND information_schema.key_column_usage.referenced_table_name IS NOT NULL  ORDER BY TABLE_NAME ASC".format(database=db_database))
     relationships = cursor.fetchall()
 
     cursor.execute("SELECT * FROM information_schema.columns where table_schema='{0}' ORDER BY TABLE_NAME ASC, ORDINAL_POSITION ASC".format(db_database))
@@ -82,6 +82,8 @@ def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False,
                     decorator ="@Decimal"
                 elif "datetime" in table_column["COLUMN_TYPE"]:
                     decorator ="@DateTime"
+                elif "float" in table_column["COLUMN_TYPE"]:
+                    decorator ="@Float"
 
                 colum_config = []
                 if table_column["COLUMN_KEY"] == 'PRI':
@@ -106,14 +108,20 @@ def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False,
                 entitie.write("\n\n\t# One-to-One")
 
             for table_relationship in table_relationships_n_to_one:
-                entitie.write("\n\n\t@Object(name=\"{}\", key=\"{}\", reference=\"{}\")".format(_inflector.classify(table_relationship["referenced_table_name"]), table_relationship["referenced_column_name"], table_relationship["column_name"]))
-                entitie.write("\n\tdef {}(self):pass".format(table_relationship["referenced_table_name"]))
+                if table_relationship["referenced_table_name"] != table["TABLE_NAME"]:
+                    entitie.write("\n\n\t@Object(name=\"{}\", key=\"{}\", reference=\"{}\", table=\"{}\")".format(_inflector.classify(table_relationship["referenced_table_name"]), table_relationship["referenced_column_name"], table_relationship["column_name"], table_relationship["referenced_table_name"]))
+                    entitie.write("\n\tdef {}(self):pass".format(table_relationship["referenced_table_name"]))
 
             if len(table_relationships_one_to_n)>0:
                 entitie.write("\n\n\t# One-to-many")
 
+
             for table_relationship in table_relationships_one_to_n:
-                entitie.write("\n\n\t@ObjectList(name=\"{}\", key=\"{}\", reference=\"{}\")".format(_inflector.classify(table_relationship["table_name"]), table_relationship["column_name"], table_relationship["referenced_column_name"]))
-                entitie.write("\n\tdef {}(self):pass".format(table_relationship["table_name"]))
+                if table_relationship["table_name"] != table["TABLE_NAME"]:
+                    entitie.write("\n\n\t@ObjectList(name=\"{}\", key=\"{}\", reference=\"{}\", table=\"{}\")".format(_inflector.classify(table_relationship["table_name"]), table_relationship["column_name"], table_relationship["referenced_column_name"], table_relationship["table_name"]))
+                    entitie.write("\n\tdef {}(self):pass".format(table_relationship["table_name"]))
+                else:
+                    entitie.write("\n\n\t@ObjectList(name=\"{}\", key=\"{}\", reference=\"{}\", table=\"{}\")".format(_inflector.classify(table_relationship["table_name"]), table_relationship["column_name"], table_relationship["referenced_column_name"], table_relationship["table_name"]))
+                    entitie.write("\n\tdef {}(self):pass".format(table_relationship["constraint_name"].replace("FK_","").replace("fk_","")))
 
     print("\n\t\u2714 Done!\n\n")

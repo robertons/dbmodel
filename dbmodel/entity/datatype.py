@@ -5,7 +5,7 @@ import datetime
 
 class ValidateValue:
 
-    def __init__(self, pk=False, auto_increment=False, fk=False, not_null=False, required=False, max=None, name=None, type=None, format=None, precision=None, scale=None, key=None, reference=None):
+    def __init__(self, pk=False, auto_increment=False, fk=False, not_null=False, required=False, max=None, name=None, type=None, format=None, precision=None, scale=None, key=None, reference=None, table=None):
         self.pk = pk
         self.fk = fk
         self.required = required
@@ -18,6 +18,7 @@ class ValidateValue:
         self.scale = scale
         self.key = key
         self.reference = reference
+        self.table=table
 
     def __call__(self, obj, **kw):
         self.func = obj

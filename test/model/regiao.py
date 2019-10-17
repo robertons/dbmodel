@@ -33,16 +33,16 @@ class Regiao(Entity):
 
 	# One-to-One
 
-	@Object(name="Estado", key="id", reference="id_estado")
+	@Object(name="Estado", key="id", reference="id_estado", table="estados")
 	def estados(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="Acompanhante", key="id_regiao", reference="id")
+	@ObjectList(name="Acompanhante", key="id_regiao", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass
 
-	@ObjectList(name="Cep", key="id_regiao", reference="id")
+	@ObjectList(name="Cep", key="id_regiao", reference="id", table="ceps")
 	def ceps(self):pass
 
-	@ObjectList(name="Cidade", key="id_regiao", reference="id")
+	@ObjectList(name="Cidade", key="id_regiao", reference="id", table="cidades")
 	def cidades(self):pass

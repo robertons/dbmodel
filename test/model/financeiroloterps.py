@@ -42,5 +42,5 @@ class FinanceiroLoteRps(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="FinanceiroLoteRpsRecibo", key="id_financeiro_lote_rps", reference="id")
+	@ObjectList(name="FinanceiroLoteRpsRecibo", key="id_financeiro_lote_rps", reference="id", table="financeiros_lotes_rps_recibos")
 	def financeiros_lotes_rps_recibos(self):pass

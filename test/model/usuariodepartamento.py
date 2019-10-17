@@ -15,8 +15,8 @@ class UsuarioDepartamento(Entity):
 
 	# One-to-One
 
-	@Object(name="Usuario", key="id", reference="id_usuario")
+	@Object(name="Usuario", key="id", reference="id_usuario", table="usuarios")
 	def usuarios(self):pass
 
-	@Object(name="Departamento", key="id", reference="id_departamento")
+	@Object(name="Departamento", key="id", reference="id_departamento", table="departamentos")
 	def departamentos(self):pass

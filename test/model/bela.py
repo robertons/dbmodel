@@ -36,11 +36,11 @@ class Bela(Entity):
 
 	# One-to-One
 
-	@Object(name="Sexo", key="id", reference="id_sexo")
-	def sexos(self):pass
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
+	def acompanhantes(self):pass
 
-	@Object(name="Estado", key="id", reference="id_estado")
+	@Object(name="Estado", key="id", reference="id_estado", table="estados")
 	def estados(self):pass
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
-	def acompanhantes(self):pass
+	@Object(name="Sexo", key="id", reference="id_sexo", table="sexos")
+	def sexos(self):pass

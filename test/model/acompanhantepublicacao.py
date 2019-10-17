@@ -57,13 +57,13 @@ class AcompanhantePublicacao(Entity):
 
 	# One-to-One
 
-	@Object(name="Cidade", key="id", reference="id_cidade")
+	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
 	def cidades(self):pass
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteAvaliacao", key="id_acompanhante_publicacao", reference="id")
+	@ObjectList(name="AcompanhanteAvaliacao", key="id_acompanhante_publicacao", reference="id", table="acompanhantes_avaliacoes")
 	def acompanhantes_avaliacoes(self):pass

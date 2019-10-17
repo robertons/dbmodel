@@ -15,8 +15,8 @@ class BannerEstado(Entity):
 
 	# One-to-One
 
-	@Object(name="Banner", key="id", reference="id_banner")
-	def banners(self):pass
-
-	@Object(name="Estado", key="id", reference="id_estado")
+	@Object(name="Estado", key="id", reference="id_estado", table="estados")
 	def estados(self):pass
+
+	@Object(name="Banner", key="id", reference="id_banner", table="banners")
+	def banners(self):pass

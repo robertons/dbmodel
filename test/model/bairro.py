@@ -27,16 +27,16 @@ class Bairro(Entity):
 
 	# One-to-One
 
-	@Object(name="Cidade", key="id", reference="id_cidade")
-	def cidades(self):pass
-
-	@Object(name="Estado", key="id", reference="id_estado")
+	@Object(name="Estado", key="id", reference="id_estado", table="estados")
 	def estados(self):pass
+
+	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
+	def cidades(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="Acompanhante", key="id_bairro", reference="id")
+	@ObjectList(name="Acompanhante", key="id_bairro", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass
 
-	@ObjectList(name="AcompanhanteBairro", key="id_bairro", reference="id")
+	@ObjectList(name="AcompanhanteBairro", key="id_bairro", reference="id", table="acompanhantes_bairros")
 	def acompanhantes_bairros(self):pass

@@ -5,7 +5,7 @@ __private_methods__ = ["toJSON"]
 from enum import Enum
 
 from dbmodel.entity.datatype  import *
-
+from dbmodel.utils.inflector import Inflector, Portugues
 
 class EntityStatus(Enum):
     created = 1
@@ -17,6 +17,7 @@ class Entity(object):
     def __init__(self, status=1, **kw):
         try:
             self.__status__ = EntityStatus(status)
+            self.__table__ = Inflector(Portugues).tableize(self.__class__.__name__)
             for item in self.__dir__():
                 if not item.startswith("__") and item not in __private_methods__:
                     self.__dict__["__%s"%item] = self.__getattribute__(item)
@@ -26,13 +27,16 @@ class Entity(object):
                     if item in kw:
                         self.__setattr__(item, kw[item])
                         del kw[item]
+                    elif "%s.%s"%(self.__table__,item) in kw:
+                        self.__setattr__(item, kw["%s.%s"%(self.__table__,item)])
+                        del kw["%s.%s"%(self.__table__,item)]
             if len(kw) > 0:
                 self.__setrelattr__(**kw)
         except Exception as e:
             raise e
 
     def __setrelattr__(self, **kw):
-        relation_kw = {item.split(".")[0]: {value[0].split(".")[1]:value[1] for value in kw.items() if item.split(".")[0] in value[0]} for item in sorted(kw) if "." in item}
+        relation_kw = {item.split(".")[0]: {value[0].split(".")[1]:value[1] for value in kw.items() if item.split(".")[0] in value[0]} for item in sorted(kw) if "." in item and not "%s."%self.__table__ in item}
         for _table, _data in relation_kw.items():
             if self.__dict__["__%s"%_table].__class__.__name__ == "Object" or isinstance(_data, list):
                 self.__setattr__(_table, _data)

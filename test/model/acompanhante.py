@@ -264,109 +264,109 @@ class Acompanhante(Entity):
 
 	# One-to-One
 
-	@Object(name="Bairro", key="id", reference="id_bairro")
-	def bairros(self):pass
-
-	@Object(name="Regiao", key="id", reference="id_regiao")
-	def regioes(self):pass
-
-	@Object(name="Cep", key="id", reference="id_cep")
-	def ceps(self):pass
-
-	@Object(name="Sexo", key="id", reference="id_sexo")
-	def sexos(self):pass
-
-	@Object(name="Cidade", key="id", reference="id_cidade")
+	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
 	def cidades(self):pass
 
-	@Object(name="TipoCadastro", key="id", reference="id_tipo_cadastro")
-	def tipos_cadastros(self):pass
+	@Object(name="Bairro", key="id", reference="id_bairro", table="bairros")
+	def bairros(self):pass
 
-	@Object(name="TipoFisico", key="id", reference="id_tipo_fisico")
+	@Object(name="Sexo", key="id", reference="id_sexo", table="sexos")
+	def sexos(self):pass
+
+	@Object(name="Cep", key="id", reference="id_cep", table="ceps")
+	def ceps(self):pass
+
+	@Object(name="TipoFisico", key="id", reference="id_tipo_fisico", table="tipos_fisicos")
 	def tipos_fisicos(self):pass
 
-	@Object(name="Estado", key="id", reference="id_estado")
+	@Object(name="TipoCadastro", key="id", reference="id_tipo_cadastro", table="tipos_cadastros")
+	def tipos_cadastros(self):pass
+
+	@Object(name="Estado", key="id", reference="id_estado", table="estados")
 	def estados(self):pass
+
+	@Object(name="Regiao", key="id", reference="id_regiao", table="regioes")
+	def regioes(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteAlteracao", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteAlteracao", key="id_acompanhante", reference="id", table="acompanhantes_alteracoes")
 	def acompanhantes_alteracoes(self):pass
 
-	@ObjectList(name="AcompanhanteAnuncio", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteAnuncio", key="id_acompanhante", reference="id", table="acompanhantes_anuncios")
 	def acompanhantes_anuncios(self):pass
 
-	@ObjectList(name="AcompanhanteAtendimento", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteAtendimento", key="id_acompanhante", reference="id", table="acompanhantes_atendimentos")
 	def acompanhantes_atendimentos(self):pass
 
-	@ObjectList(name="AcompanhanteAvaliacao", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteAvaliacao", key="id_acompanhante", reference="id", table="acompanhantes_avaliacoes")
 	def acompanhantes_avaliacoes(self):pass
 
-	@ObjectList(name="AcompanhanteBairro", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteBairro", key="id_acompanhante", reference="id", table="acompanhantes_bairros")
 	def acompanhantes_bairros(self):pass
 
-	@ObjectList(name="AcompanhanteCaseiraAdicional", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteCaseiraAdicional", key="id_acompanhante", reference="id", table="acompanhantes_caseiras_adicionais")
 	def acompanhantes_caseiras_adicionais(self):pass
 
-	@ObjectList(name="AcompanhanteCaseiraOrdem", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteCaseiraOrdem", key="id_acompanhante", reference="id", table="acompanhantes_caseiras_ordens")
 	def acompanhantes_caseiras_ordens(self):pass
 
-	@ObjectList(name="AcompanhanteCaseiraVip", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteCaseiraVip", key="id_acompanhante", reference="id", table="acompanhantes_caseiras_vips")
 	def acompanhantes_caseiras_vips(self):pass
 
-	@ObjectList(name="AcompanhanteCidade", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteCidade", key="id_acompanhante", reference="id", table="acompanhantes_cidades")
 	def acompanhantes_cidades(self):pass
 
-	@ObjectList(name="AcompanhanteCompra", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteCompra", key="id_acompanhante", reference="id", table="acompanhantes_compras")
 	def acompanhantes_compras(self):pass
 
-	@ObjectList(name="AcompanhanteDestaque", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteDestaque", key="id_acompanhante", reference="id", table="acompanhantes_destaques")
 	def acompanhantes_destaques(self):pass
 
-	@ObjectList(name="AcompanhanteEnsaio", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteEnsaio", key="id_acompanhante", reference="id", table="acompanhantes_ensaios")
 	def acompanhantes_ensaios(self):pass
 
-	@ObjectList(name="AcompanhanteEnsaioEdicao", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteEnsaioEdicao", key="id_acompanhante", reference="id", table="acompanhantes_ensaios_edicoes")
 	def acompanhantes_ensaios_edicoes(self):pass
 
-	@ObjectList(name="AcompanhanteEstatistica", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteEstatistica", key="id_acompanhante", reference="id", table="acompanhantes_estatisticas")
 	def acompanhantes_estatisticas(self):pass
 
-	@ObjectList(name="AcompanhanteEstatisticaDia", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteEstatisticaDia", key="id_acompanhante", reference="id", table="acompanhantes_estatisticas_dias")
 	def acompanhantes_estatisticas_dias(self):pass
 
-	@ObjectList(name="AcompanhanteEstatisticaDiaTrafego", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteEstatisticaDiaTrafego", key="id_acompanhante", reference="id", table="acompanhantes_estatisticas_dias_trafegos")
 	def acompanhantes_estatisticas_dias_trafegos(self):pass
 
-	@ObjectList(name="AcompanhanteFotoCaseira", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteFotoCaseira", key="id_acompanhante", reference="id", table="acompanhantes_fotos_caseiras")
 	def acompanhantes_fotos_caseiras(self):pass
 
-	@ObjectList(name="AcompanhanteLog", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteLog", key="id_acompanhante", reference="id", table="acompanhantes_logs")
 	def acompanhantes_logs(self):pass
 
-	@ObjectList(name="AcompanhanteLogSms", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteLogSms", key="id_acompanhante", reference="id", table="acompanhantes_logs_sms")
 	def acompanhantes_logs_sms(self):pass
 
-	@ObjectList(name="AcompanhanteNotificacao", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteNotificacao", key="id_acompanhante", reference="id", table="acompanhantes_notificacoes")
 	def acompanhantes_notificacoes(self):pass
 
-	@ObjectList(name="AcompanhanteNovidade", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteNovidade", key="id_acompanhante", reference="id", table="acompanhantes_novidades")
 	def acompanhantes_novidades(self):pass
 
-	@ObjectList(name="AcompanhanteOrdemServico", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteOrdemServico", key="id_acompanhante", reference="id", table="acompanhantes_ordens_servicos")
 	def acompanhantes_ordens_servicos(self):pass
 
-	@ObjectList(name="AcompanhantePublicacao", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhantePublicacao", key="id_acompanhante", reference="id", table="acompanhantes_publicacoes")
 	def acompanhantes_publicacoes(self):pass
 
-	@ObjectList(name="AcompanhanteRestricao", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteRestricao", key="id_acompanhante", reference="id", table="acompanhantes_restricoes")
 	def acompanhantes_restricoes(self):pass
 
-	@ObjectList(name="AcompanhanteTrafego", key="id_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteTrafego", key="id_acompanhante", reference="id", table="acompanhantes_trafegos")
 	def acompanhantes_trafegos(self):pass
 
-	@ObjectList(name="Bela", key="id_acompanhante", reference="id")
+	@ObjectList(name="Bela", key="id_acompanhante", reference="id", table="belas")
 	def belas(self):pass
 
-	@ObjectList(name="Financeiro", key="id_acompanhante", reference="id")
+	@ObjectList(name="Financeiro", key="id_acompanhante", reference="id", table="financeiros")
 	def financeiros(self):pass

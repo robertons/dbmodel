@@ -15,5 +15,5 @@ class AcompanhanteAtendimentoTipo(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteAtendimento", key="id_tipo_atendimento", reference="id")
+	@ObjectList(name="AcompanhanteAtendimento", key="id_tipo_atendimento", reference="id", table="acompanhantes_atendimentos")
 	def acompanhantes_atendimentos(self):pass

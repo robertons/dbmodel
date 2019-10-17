@@ -42,14 +42,14 @@ class AcompanhanteNotificacao(Entity):
 
 	# One-to-One
 
-	@Object(name="Cidade", key="id", reference="id_cidade")
+	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
 	def cidades(self):pass
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
-	def acompanhantes(self):pass
-
-	@Object(name="Estado", key="id", reference="id_estado")
+	@Object(name="Estado", key="id", reference="id_estado", table="estados")
 	def estados(self):pass
 
-	@Object(name="AcompanhanteAtendimento", key="id", reference="id_atendimento_acompanhante")
+	@Object(name="AcompanhanteAtendimento", key="id", reference="id_atendimento_acompanhante", table="acompanhantes_atendimentos")
 	def acompanhantes_atendimentos(self):pass
+
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
+	def acompanhantes(self):pass

@@ -72,8 +72,8 @@ class AcompanhanteFotoCaseira(Entity):
 
 	# One-to-One
 
-	@Object(name="Usuario", key="id", reference="id_usuario")
+	@Object(name="Usuario", key="id", reference="id_usuario", table="usuarios")
 	def usuarios(self):pass
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass

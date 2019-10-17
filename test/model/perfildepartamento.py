@@ -15,8 +15,8 @@ class PerfilDepartamento(Entity):
 
 	# One-to-One
 
-	@Object(name="Perfil", key="id", reference="id_perfil")
-	def perfis(self):pass
-
-	@Object(name="Departamento", key="id", reference="id_departamento")
+	@Object(name="Departamento", key="id", reference="id_departamento", table="departamentos")
 	def departamentos(self):pass
+
+	@Object(name="Perfil", key="id", reference="id_perfil", table="perfis")
+	def perfis(self):pass

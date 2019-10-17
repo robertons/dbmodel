@@ -60,5 +60,5 @@ class AcompanhanteEnsaioFoto(Entity):
 
 	# One-to-One
 
-	@Object(name="AcompanhanteEnsaio", key="id", reference="id_ensaio_acompanhante")
+	@Object(name="AcompanhanteEnsaio", key="id", reference="id_ensaio_acompanhante", table="acompanhantes_ensaios")
 	def acompanhantes_ensaios(self):pass

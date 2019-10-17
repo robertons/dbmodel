@@ -15,8 +15,8 @@ class BannerSexo(Entity):
 
 	# One-to-One
 
-	@Object(name="Banner", key="id", reference="id_banner")
-	def banners(self):pass
-
-	@Object(name="Sexo", key="id", reference="id_sexo")
+	@Object(name="Sexo", key="id", reference="id_sexo", table="sexos")
 	def sexos(self):pass
+
+	@Object(name="Banner", key="id", reference="id_banner", table="banners")
+	def banners(self):pass

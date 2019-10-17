@@ -8,7 +8,7 @@ from dbmodel.context.database import DataBase
 from dbmodel.entity.datatype import ListType
 from dbmodel.entity.entity import EntityStatus
 
-sql_operators = [ '!=', '>=','>','<=','<','=', 'NOT IS', 'IS', 'NOT LIKE', 'LIKE', ' ']
+sql_operators = [ '!=', '>=','>','<=','<','=', ' IS NULL ', ' NOT IS ', ' IS ', ' NOT LIKE ', ' LIKE ', ' ']
 relational_types = ["Object" , "ObjectList"]
 
 class Connection():
@@ -27,19 +27,22 @@ class Connection():
     #VERIFICA SE O ATRIBUTO INFORMADO É UM METODO EXISTENTE SE NÃO FOR TRATA PARA VERIFICAR SE É UMA TABELA
     def __getattr__(self, name):
         try:
-            if not "_table" in self.__dir__():
+            if not name in self.__dir__():
                 self._table = name
+                self._distinct = None
                 self._select = None
                 self._where = None
                 self._having = None
                 self._orhaving = None
                 self._orwhere = None
-                self._order_by = None
-                self._group_by = None
+                self._orderby = None
+                self._groupby = None
                 self._limit = None
-                self._left = None
+                self._join = None
+                self._include = None
                 classname =  self._inflector.classify(name)
                 self._class = getattr(__import__('model.{0}'.format(classname.lower()), fromlist=[classname]), classname)
+                self._klass = self._class()
             else:
                 return None
             return self
@@ -59,19 +62,24 @@ class Connection():
         if not "_table" in self.__dir__():
             raise Exception("table not selected")
 
-    def __valid_field(self, field):
-        if isinstance(field, str) and field.strip() in self._class.__dict__ and not getattr(self._class, field.strip()).__class__.__name__ in relational_types:
-            return field.strip()
-        if isinstance(field, list) and field[0] in self._class.__dict__ and not getattr(self._class, field[0]).__class__.__name__ in relational_types:
+
+    def __validate_field(self, field):
+        field = field.strip()
+        if not "." in field and field in self._class.__dict__:
+            return "{}.{}".format(self._table, field)
+        elif field.split(".")[0] == self._table and field.split(".")[1] == "*":
             return field
-        if isinstance(field, str) and "." in field:
-            if field.split(".")[0].strip() == self._table and field.split(".")[1].strip() == "*":
-                return field.strip()
-            if field.split(".")[0].strip() == self._table and field.split(".")[1].strip() in self._class.__dict__ and not getattr(self._class, field.split(".")[1].strip()).__class__.__name__ in relational_types:
-                return field.strip()
-            if field.split(".")[0].strip() in self._class.__dict__ and getattr(self._class, field.split(".")[0].strip()).__class__.__name__ in relational_types:
-                return field.strip()
-        raise Exception("{} field does not exist in table".format(field))
+        elif field.split(".")[0] == self._table and field.split(".")[1].strip() in self._class.__dict__:
+            return field
+        elif field.split(".")[0] in self._class.__dict__:
+            return field
+
+    def __valid_field(self, field):
+        if isinstance(field, str):
+            field = self.__validate_field(field)
+        elif isinstance(field, list):
+            field[0] = self.__validate_field(field[0])
+        return field
 
     def __valid_relational_table(self, table):
         try:
@@ -108,6 +116,13 @@ class Connection():
                 list_tables.append(self.__valid_relational_table(table))
         return list_tables
 
+
+    def distinct(self, *fields):
+        try:
+            self._distinct = self.__check_fields(*fields)
+            return self
+        except Exception as e:
+            raise e
 
     def select(self, *fields):
         try:
@@ -177,49 +192,84 @@ class Connection():
         self._include = self.__check_tables(*tables)
         return self
 
-    def _write_select_query(self):
+
+    def format_join(self, _SELECT, _FROM, _LIST, _TYPE):
+
+        for join in _LIST:
+            _SELECT_JOIN = ""
+
+            if not self._select or len(self._select) == 0 or "%s.*"%join in self._select:
+                _SELECT_JOIN = ", ".join(["{0}.{1} AS '{0}.{1}'".format(join, field) for field in self._class.__dict__[join].type.__dict__ if not field.startswith("_") and not self._class.__dict__[join].type.__dict__[field].__class__.__name__.startswith("Object")])
+            else:
+                _SELECT_JOIN = ", ".join(["%s AS '%s'"%(_selected, _selected) for _selected in self._select if "." in _selected and "%s."%join in _selected])
+
+            _FROM_JOIN = "{0} JOIN {1} AS {2} ON {2}.{3} = {4}.{5}".format(
+                _TYPE,
+                self._class.__dict__[join].__dict__["table"],
+                join,
+                self._class.__dict__[join].__dict__["key"],
+                self._table,
+                self._class.__dict__[join].__dict__["reference"],
+            )
+
+            _JOIN_CONDITION = [" ".join(condition) for condition in self._where if "%s."%join in condition[0]]
+            if len(_JOIN_CONDITION)>0:
+                _FROM_JOIN = "{} AND {}".format(_FROM_JOIN, " AND ".join(_JOIN_CONDITION))
+
+            if _SELECT_JOIN != "":
+                _SELECT = "{}, {}".format(_SELECT, _SELECT_JOIN)
+
+            _FROM = "{} {}".format(_FROM, _FROM_JOIN)
+
+        return _SELECT, _FROM
+
+    def _write_select_query(self, object=True):
+
         self.__valid_table()
 
         # FORMATA SELECT QUERY
-        _SELECT = "{}.*".format(self._table) if not self._select and len(self._select) == 0 else ", ".join(["{}.{}".format(self._table, _selected) if "." not in _selected else _selected if _selected.split(".")[0] == self._table else "{0} AS '{0}'".format(_selected) for _selected in list(set().union(self._class.__primary_key__, self._select)) if not "." in _selected or _selected.split(".")[0] == self._table or _selected.split(".")[1] != "*"])
-        _SELECTED_FIELDS_JOINS = [_selected for _selected in self._select if _selected.split(".")[0] != self._table and _selected.split(".")[1] == "*" ]
+        if object:
+            if not self._select or len(self._select) == 0 or "%s.*"%self._table in self._select:
+                _SELECT = ", ".join(["{0}.{1} AS '{0}.{1}'".format(self._table, field) for field in self._class.__dict__ if not field.startswith("_") and not self._class.__dict__[field].__class__.__name__.startswith("Object")])
+            else:
+                _SELECT = ", ".join(["%s AS '%s'"%(_selected, _selected) for _selected in self._select if "%s."%self._table in _selected])
+        else:
+            if not self._select or len(self._select) == 0 or "%s.*"%self._table in self._select:
+                _SELECT = "%s.*"%self._table
+            else:
+                _SELECT = ", ".join([_selected for _selected in self._select if not  "." in _selected or "%s."%self._table in _selected])
+
+
+        if self._distinct and len(self._distinct)>0:
+            _SELECT = "{}, {}".format("DISTINCT({})".format(",".join(self._distinct)), _SELECT)
+
         _FROM = self._table
 
         if self._join and len(self._join) > 0:
-            if not self._select or len(self._select) == 0 or len(_SELECTED_FIELDS_JOINS)>0:
-                _SELECT = "{}, {}".format(_SELECT, ",".join([", ".join(["{0}.{1} AS '{0}.{1}'".format(join, field) for field in getattr(self._class, join).type.__dict__ if not field.startswith("_")]) for join in self._join if not self._select or len(self._select) == 0 or "%s.*"%join in _SELECTED_FIELDS_JOINS])).strip()
-            if _SELECT.endswith(","):
-                _SELECT = _SELECT[:-1]
-            _INNER_JOIN = ["INNER JOIN {0} AS {0} ON {0}.{1} = {2}.{3}".format(join, getattr(self._class, join).key, self._table, getattr(self._class, join).reference) for join in self._join]
-            _FROM = "{} {}".format(_FROM, "".join(_INNER_JOIN))
+            _SELECT, _FROM = self.format_join(_SELECT, _FROM, self._join, "INNER")
 
         if self._include and len(self._include) > 0:
-            if not self._select or len(self._select) == 0 or len(_SELECTED_FIELDS_JOINS)>0:
-                _SELECT = "{}, {}".format(_SELECT, ",".join([", ".join(["{0}.{1} AS '{0}.{1}'".format(include, field) for field in getattr(self._class, include).type.__dict__ if not field.startswith("_")]) for include in self._include if not self._select or len(self._select) == 0 or "%s.*"%include in _SELECTED_FIELDS_JOINS])).strip()
-            if _SELECT.endswith(","):
-                _SELECT = _SELECT[:-1]
-            _LEFT_JOIN = ["LEFT JOIN {0} AS {0} ON {0}.{1} = {2}.{3}".format(include, getattr(self._class, include).key, self._table, getattr(self._class, include).reference) for include in self._include]
-            _FROM = "{} {}".format(_FROM, "".join(_LEFT_JOIN))
+            _SELECT, _FROM = self.format_join(_SELECT, _FROM, self._include, "LEFT")
 
         _QUERY = "SELECT {} FROM {}".format(_SELECT, _FROM)
 
         if self._where and len(self._where) > 0:
-            _WHERE = " AND ".join(["".join(condition) for condition in self._where])
+            _WHERE = " AND ".join(["".join(condition).strip() for condition in self._where if not "." in condition[0] or "%s."%self._table in condition[0]])
             _QUERY = "{} WHERE ({})".format(_QUERY, _WHERE)
         if self._orwhere and len(self._orwhere) > 0:
-            _ORWHERE = " AND ".join(["".join(condition) for condition in self._orwhere])
+            _ORWHERE = " AND ".join(["".join(condition).strip() for condition in self._orwhere if not "." in condition[0] or "%s."%self._table in condition[0]])
             _QUERY = "{} OR ({})".format(_QUERY, _ORWHERE)
         if self._groupby and len(self._groupby) > 0:
             _GROUPBY = " ".join(self._groupby)
             _QUERY = "{} GROUP BY {}".format(_QUERY, _GROUPBY)
         if self._having and len(self._having) > 0:
-            _HAVING = " AND ".join(["".join(condition) for condition in self._having])
+            _HAVING = " AND ".join(["".join(condition).strip() for condition in self._having if not "." in condition[0] or "%s."%self._table in condition[0]])
             _QUERY = "{} HAVING ({})".format(_QUERY, _HAVING)
         if self._orhaving and len(self._orhaving) > 0:
-            _ORHAVING = " AND ".join(["".join(condition) for condition in self._orhaving])
+            _ORHAVING = " AND ".join(["".join(condition).strip() for condition in self._orhaving if not "." in condition[0] or "%s."%self._table in condition[0]])
             _QUERY = "{} OR ({})".format(_QUERY, _ORHAVING)
         if self._orderby and len(self._orderby) > 0:
-            _ORDERBY = ", ".join(["".join(condition) for condition in self._orderby])
+            _ORDERBY = ", ".join(["".join(condition).strip() for condition in self._orderby])
             _QUERY = "{} ORDER BY {}".format(_QUERY, _ORDERBY)
         if self._limit:
             _QUERY = "{} LIMIT {},{}".format(_QUERY, self._limit[0], self._limit[1])
@@ -228,27 +278,36 @@ class Connection():
 
     # EXECUÇÃO DE COMANDO
     def compare(self, obj, reg):
-        exists = [getattr(obj, key) == reg[key] for key in self._class.__primary_key__]
+        exists = [getattr(obj, key) == reg["%s.%s"%(self._table, key)] for key in self._class.__primary_key__]
         return all(exists)
 
 
     @property
     def all(self):
-        registros = self._db.fetchall(self._write_select_query())
-        object_list = ListType(self._class)
-        for linha in registros:
-            object_exit = [obj for obj in object_list if self.compare(obj, linha)]
-            if len(object_exit)==0:
-                obj = self._class(status=2, **linha)
-                obj.__status__ = EntityStatus(2)
-                object_list.append(obj)
-            else :
-                object_exit[0].__setrelattr__(**linha)
-                object_exit[0].__status__ = EntityStatus(2)
-
-        return object_list
+        result = self._db.fetchall(self._write_select_query())
+        return self.__fill(result, self._class)
 
     # EXECUÇÃO DE COMANDO
     @property
     def fetch(self):
-        return self._db.fetchall(self._write_select_query())
+        return self._db.fetchall(self._write_select_query(False))
+
+    def query(self, query, model=None):
+        result = self._db.fetchall(query)
+        if model:
+            return self.__fill(result, model)
+        return result
+
+    def __fill(self, data, model):
+        object_list = ListType(model)
+        for row in data:
+            row = {k:v for k,v in row.items() if v is not None}
+            object_exit = [obj for obj in object_list if self.compare(obj, row)]
+            if len(object_exit)==0:
+                obj = model(status=2, **row)
+                obj.__status__ = EntityStatus(2)
+                object_list.append(obj)
+            else :
+                object_exit[0].__setrelattr__(**row)
+                object_exit[0].__status__ = EntityStatus(2)
+        return object_list

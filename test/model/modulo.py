@@ -27,10 +27,10 @@ class Modulo(Entity):
 
 	# One-to-One
 
-	@Object(name="Departamento", key="id", reference="id_departamento")
+	@Object(name="Departamento", key="id", reference="id_departamento", table="departamentos")
 	def departamentos(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="UsuarioModulo", key="id_modulo", reference="id")
+	@ObjectList(name="UsuarioModulo", key="id_modulo", reference="id", table="usuarios_modulos")
 	def usuarios_modulos(self):pass

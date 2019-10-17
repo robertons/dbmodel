@@ -48,37 +48,34 @@ class Cidade(Entity):
 
 	# One-to-One
 
-	@Object(name="Regiao", key="id", reference="id_regiao")
-	def regioes(self):pass
-
-	@Object(name="Cidade", key="id", reference="id_municipio")
-	def cidades(self):pass
-
-	@Object(name="Estado", key="id", reference="id_estado")
+	@Object(name="Estado", key="id", reference="id_estado", table="estados")
 	def estados(self):pass
+
+	@Object(name="Regiao", key="id", reference="id_regiao", table="regioes")
+	def regioes(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="Acompanhante", key="id_cidade", reference="id")
+	@ObjectList(name="Acompanhante", key="id_cidade", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass
 
-	@ObjectList(name="AcompanhanteBairro", key="id_cidade", reference="id")
+	@ObjectList(name="AcompanhanteBairro", key="id_cidade", reference="id", table="acompanhantes_bairros")
 	def acompanhantes_bairros(self):pass
 
-	@ObjectList(name="AcompanhanteCidade", key="id_cidade", reference="id")
+	@ObjectList(name="AcompanhanteCidade", key="id_cidade", reference="id", table="acompanhantes_cidades")
 	def acompanhantes_cidades(self):pass
 
-	@ObjectList(name="AcompanhanteNotificacao", key="id_cidade", reference="id")
+	@ObjectList(name="AcompanhanteNotificacao", key="id_cidade", reference="id", table="acompanhantes_notificacoes")
 	def acompanhantes_notificacoes(self):pass
 
-	@ObjectList(name="AcompanhantePublicacao", key="id_cidade", reference="id")
+	@ObjectList(name="AcompanhantePublicacao", key="id_cidade", reference="id", table="acompanhantes_publicacoes")
 	def acompanhantes_publicacoes(self):pass
 
-	@ObjectList(name="Bairro", key="id_cidade", reference="id")
+	@ObjectList(name="Bairro", key="id_cidade", reference="id", table="bairros")
 	def bairros(self):pass
 
-	@ObjectList(name="Cep", key="id_cidade", reference="id")
+	@ObjectList(name="Cep", key="id_cidade", reference="id", table="ceps")
 	def ceps(self):pass
 
-	@ObjectList(name="Cidade", key="id_municipio", reference="id")
-	def cidades(self):pass
+	@ObjectList(name="Cidade", key="id_municipio", reference="id", table="cidades")
+	def cidades_municipios(self):pass

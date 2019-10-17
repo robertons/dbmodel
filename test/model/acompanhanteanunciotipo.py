@@ -36,10 +36,10 @@ class AcompanhanteAnuncioTipo(Entity):
 
 	# One-to-One
 
-	@Object(name="FinanceiroServico", key="id", reference="id_servico")
+	@Object(name="FinanceiroServico", key="id", reference="id_servico", table="financeiros_servicos")
 	def financeiros_servicos(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteAnuncio", key="id_tipo_anuncio", reference="id")
+	@ObjectList(name="AcompanhanteAnuncio", key="id_tipo_anuncio", reference="id", table="acompanhantes_anuncios")
 	def acompanhantes_anuncios(self):pass

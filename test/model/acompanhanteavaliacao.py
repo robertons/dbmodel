@@ -43,7 +43,7 @@ class AcompanhanteAvaliacao(Entity):
 	@Int(fk=True, precision = 10, scale=0)
 	def id_acompanhante_avaliacao(self): pass
 
-	@String(precision = 12)
+	@Float(precision = 12)
 	def ava_ordem_resposta(self): pass
 
 	@Int(fk=True, precision = 10, scale=0)
@@ -51,16 +51,13 @@ class AcompanhanteAvaliacao(Entity):
 
 	# One-to-One
 
-	@Object(name="AcompanhanteAvaliacao", key="id", reference="id_acompanhante_avaliacao")
-	def acompanhantes_avaliacoes(self):pass
-
-	@Object(name="AcompanhantePublicacao", key="id", reference="id_acompanhante_publicacao")
+	@Object(name="AcompanhantePublicacao", key="id", reference="id_acompanhante_publicacao", table="acompanhantes_publicacoes")
 	def acompanhantes_publicacoes(self):pass
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteAvaliacao", key="id_acompanhante_avaliacao", reference="id")
-	def acompanhantes_avaliacoes(self):pass
+	@ObjectList(name="AcompanhanteAvaliacao", key="id_acompanhante_avaliacao", reference="id", table="acompanhantes_avaliacoes")
+	def acompanhantes_avaliacoes_respostas(self):pass

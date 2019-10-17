@@ -18,5 +18,5 @@ class TipoFisico(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="Acompanhante", key="id_tipo_fisico", reference="id")
+	@ObjectList(name="Acompanhante", key="id_tipo_fisico", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass

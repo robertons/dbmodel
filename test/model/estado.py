@@ -42,26 +42,26 @@ class Estado(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="Acompanhante", key="id_estado", reference="id")
+	@ObjectList(name="Acompanhante", key="id_estado", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass
 
-	@ObjectList(name="AcompanhanteNotificacao", key="id_estado", reference="id")
+	@ObjectList(name="AcompanhanteNotificacao", key="id_estado", reference="id", table="acompanhantes_notificacoes")
 	def acompanhantes_notificacoes(self):pass
 
-	@ObjectList(name="Bairro", key="id_estado", reference="id")
+	@ObjectList(name="Bairro", key="id_estado", reference="id", table="bairros")
 	def bairros(self):pass
 
-	@ObjectList(name="BannerEstado", key="id_estado", reference="id")
+	@ObjectList(name="BannerEstado", key="id_estado", reference="id", table="banners_estados")
 	def banners_estados(self):pass
 
-	@ObjectList(name="Bela", key="id_estado", reference="id")
+	@ObjectList(name="Bela", key="id_estado", reference="id", table="belas")
 	def belas(self):pass
 
-	@ObjectList(name="Cep", key="id_estado", reference="id")
+	@ObjectList(name="Cep", key="id_estado", reference="id", table="ceps")
 	def ceps(self):pass
 
-	@ObjectList(name="Cidade", key="id_estado", reference="id")
+	@ObjectList(name="Cidade", key="id_estado", reference="id", table="cidades")
 	def cidades(self):pass
 
-	@ObjectList(name="Regiao", key="id_estado", reference="id")
+	@ObjectList(name="Regiao", key="id_estado", reference="id", table="regioes")
 	def regioes(self):pass

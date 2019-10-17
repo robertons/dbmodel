@@ -27,5 +27,5 @@ class FinanceiroServicoValor(Entity):
 
 	# One-to-One
 
-	@Object(name="FinanceiroServico", key="id", reference="id_servico")
+	@Object(name="FinanceiroServico", key="id", reference="id_servico", table="financeiros_servicos")
 	def financeiros_servicos(self):pass

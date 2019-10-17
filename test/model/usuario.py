@@ -33,28 +33,28 @@ class Usuario(Entity):
 
 	# One-to-One
 
-	@Object(name="Perfil", key="id", reference="id_perfil")
+	@Object(name="Perfil", key="id", reference="id_perfil", table="perfis")
 	def perfis(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteFotoCaseira", key="id_usuario", reference="id")
+	@ObjectList(name="AcompanhanteFotoCaseira", key="id_usuario", reference="id", table="acompanhantes_fotos_caseiras")
 	def acompanhantes_fotos_caseiras(self):pass
 
-	@ObjectList(name="AcompanhanteLog", key="id_usuario", reference="id")
+	@ObjectList(name="AcompanhanteLog", key="id_usuario", reference="id", table="acompanhantes_logs")
 	def acompanhantes_logs(self):pass
 
-	@ObjectList(name="AcompanhanteOrdemServico", key="id_usuario_criador", reference="id")
+	@ObjectList(name="AcompanhanteOrdemServico", key="id_usuario_realizador", reference="id", table="acompanhantes_ordens_servicos")
 	def acompanhantes_ordens_servicos(self):pass
 
-	@ObjectList(name="AcompanhanteOrdemServico", key="id_usuario_realizador", reference="id")
+	@ObjectList(name="AcompanhanteOrdemServico", key="id_usuario_criador", reference="id", table="acompanhantes_ordens_servicos")
 	def acompanhantes_ordens_servicos(self):pass
 
-	@ObjectList(name="Log", key="id_usuario", reference="id")
+	@ObjectList(name="Log", key="id_usuario", reference="id", table="logs")
 	def logs(self):pass
 
-	@ObjectList(name="UsuarioDepartamento", key="id_usuario", reference="id")
+	@ObjectList(name="UsuarioDepartamento", key="id_usuario", reference="id", table="usuarios_departamentos")
 	def usuarios_departamentos(self):pass
 
-	@ObjectList(name="UsuarioModulo", key="id_usuario", reference="id")
+	@ObjectList(name="UsuarioModulo", key="id_usuario", reference="id", table="usuarios_modulos")
 	def usuarios_modulos(self):pass

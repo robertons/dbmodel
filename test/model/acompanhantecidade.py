@@ -15,8 +15,8 @@ class AcompanhanteCidade(Entity):
 
 	# One-to-One
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass
 
-	@Object(name="Cidade", key="id", reference="id_cidade")
+	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
 	def cidades(self):pass

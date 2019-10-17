@@ -48,11 +48,11 @@ class Sexo(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="Acompanhante", key="id_sexo", reference="id")
+	@ObjectList(name="Acompanhante", key="id_sexo", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass
 
-	@ObjectList(name="BannerSexo", key="id_sexo", reference="id")
+	@ObjectList(name="BannerSexo", key="id_sexo", reference="id", table="banners_sexos")
 	def banners_sexos(self):pass
 
-	@ObjectList(name="Bela", key="id_sexo", reference="id")
+	@ObjectList(name="Bela", key="id_sexo", reference="id", table="belas")
 	def belas(self):pass

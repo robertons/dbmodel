@@ -72,13 +72,13 @@ class AcompanhanteEnsaio(Entity):
 
 	# One-to-One
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteEnsaioEdicao", key="id_ensaio", reference="id")
+	@ObjectList(name="AcompanhanteEnsaioEdicao", key="id_ensaio", reference="id", table="acompanhantes_ensaios_edicoes")
 	def acompanhantes_ensaios_edicoes(self):pass
 
-	@ObjectList(name="AcompanhanteEnsaioFoto", key="id_ensaio_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteEnsaioFoto", key="id_ensaio_acompanhante", reference="id", table="acompanhantes_ensaios_fotos")
 	def acompanhantes_ensaios_fotos(self):pass

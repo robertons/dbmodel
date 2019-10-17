@@ -45,5 +45,5 @@ class AcompanhanteAlteracao(Entity):
 
 	# One-to-One
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass

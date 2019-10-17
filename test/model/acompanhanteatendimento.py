@@ -69,13 +69,13 @@ class AcompanhanteAtendimento(Entity):
 
 	# One-to-One
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
-	def acompanhantes(self):pass
-
-	@Object(name="AcompanhanteAtendimentoTipo", key="id", reference="id_tipo_atendimento")
+	@Object(name="AcompanhanteAtendimentoTipo", key="id", reference="id_tipo_atendimento", table="acompanhantes_atendimentos_tipos")
 	def acompanhantes_atendimentos_tipos(self):pass
+
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
+	def acompanhantes(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="AcompanhanteNotificacao", key="id_atendimento_acompanhante", reference="id")
+	@ObjectList(name="AcompanhanteNotificacao", key="id_atendimento_acompanhante", reference="id", table="acompanhantes_notificacoes")
 	def acompanhantes_notificacoes(self):pass

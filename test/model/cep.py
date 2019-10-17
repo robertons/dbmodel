@@ -120,16 +120,16 @@ class Cep(Entity):
 
 	# One-to-One
 
-	@Object(name="Regiao", key="id", reference="id_regiao")
+	@Object(name="Estado", key="id", reference="id_estado", table="estados")
+	def estados(self):pass
+
+	@Object(name="Regiao", key="id", reference="id_regiao", table="regioes")
 	def regioes(self):pass
 
-	@Object(name="Cidade", key="id", reference="id_cidade")
+	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
 	def cidades(self):pass
-
-	@Object(name="Estado", key="id", reference="id_estado")
-	def estados(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="Acompanhante", key="id_cep", reference="id")
+	@ObjectList(name="Acompanhante", key="id_cep", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass

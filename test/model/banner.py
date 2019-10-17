@@ -42,8 +42,8 @@ class Banner(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="BannerEstado", key="id_banner", reference="id")
+	@ObjectList(name="BannerEstado", key="id_banner", reference="id", table="banners_estados")
 	def banners_estados(self):pass
 
-	@ObjectList(name="BannerSexo", key="id_banner", reference="id")
+	@ObjectList(name="BannerSexo", key="id_banner", reference="id", table="banners_sexos")
 	def banners_sexos(self):pass

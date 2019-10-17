@@ -27,8 +27,8 @@ class Perfil(Entity):
 
 	# One-to-many
 
-	@ObjectList(name="PerfilDepartamento", key="id_perfil", reference="id")
+	@ObjectList(name="PerfilDepartamento", key="id_perfil", reference="id", table="perfis_departamentos")
 	def perfis_departamentos(self):pass
 
-	@ObjectList(name="Usuario", key="id_perfil", reference="id")
+	@ObjectList(name="Usuario", key="id_perfil", reference="id", table="usuarios")
 	def usuarios(self):pass
