@@ -37,6 +37,3 @@ class Bairro(Entity):
 
 	@ObjectList(name="Acompanhante", key="id_bairro", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass
-
-	@ObjectList(name="AcompanhanteBairro", key="id_bairro", reference="id", table="acompanhantes_bairros")
-	def acompanhantes_bairros(self):pass

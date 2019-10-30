@@ -114,8 +114,8 @@ class FinanceiroLoteRpsRecibo(Entity):
 
 	# One-to-One
 
-	@Object(name="Financeiro", key="id", reference="id_financeiro", table="financeiros")
-	def financeiros(self):pass
-
 	@Object(name="FinanceiroLoteRps", key="id", reference="id_financeiro_lote_rps", table="financeiros_lotes_rps")
 	def financeiros_lotes_rps(self):pass
+
+	@Object(name="Financeiro", key="id", reference="id_financeiro", table="financeiros")
+	def financeiros(self):pass

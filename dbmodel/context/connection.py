@@ -17,7 +17,7 @@ class Connection():
         try:
             self._inflector = Inflector(Portugues)
             self._db = DataBase(db_user, db_password, db_host, db_port, db_database, db_ssl,db_ssl_ca, db_ssl_cert, db_ssl_key)
-            self._commit = []
+            self.__commit__ = []
         except Exception as e:
             raise e
 
@@ -73,6 +73,8 @@ class Connection():
             return field
         elif field.split(".")[0] in self._class.__dict__:
             return field
+        # TODO VALIDADE FIELD WITH FUNCTION
+        return field
 
     def __valid_field(self, field):
         if isinstance(field, str):
@@ -83,6 +85,7 @@ class Connection():
 
     def __valid_relational_table(self, table):
         try:
+            table = table.strip()
             if getattr(self._class, table).__class__.__name__ in relational_types:
                 return table
             raise Exception("{} table does not exist in relational list".format(table))
@@ -212,7 +215,7 @@ class Connection():
                 self._class.__dict__[join].__dict__["reference"],
             )
 
-            _JOIN_CONDITION = [" ".join(condition) for condition in self._where if "%s."%join in condition[0]]
+            _JOIN_CONDITION = [" ".join(condition) for condition in self._where if "%s."%join in condition[0]] if self._where else []
             if len(_JOIN_CONDITION)>0:
                 _FROM_JOIN = "{} AND {}".format(_FROM_JOIN, " AND ".join(_JOIN_CONDITION))
 
@@ -232,6 +235,8 @@ class Connection():
             if not self._select or len(self._select) == 0 or "%s.*"%self._table in self._select:
                 _SELECT = ", ".join(["{0}.{1} AS '{0}.{1}'".format(self._table, field) for field in self._class.__dict__ if not field.startswith("_") and not self._class.__dict__[field].__class__.__name__.startswith("Object")])
             else:
+                for pk in self._class.__primary_key__:
+                    self._select.append("{}.{}".format(self._table, pk))
                 _SELECT = ", ".join(["%s AS '%s'"%(_selected, _selected) for _selected in self._select if "%s."%self._table in _selected])
         else:
             if not self._select or len(self._select) == 0 or "%s.*"%self._table in self._select:
@@ -254,8 +259,10 @@ class Connection():
         _QUERY = "SELECT {} FROM {}".format(_SELECT, _FROM)
 
         if self._where and len(self._where) > 0:
-            _WHERE = " AND ".join(["".join(condition).strip() for condition in self._where if not "." in condition[0] or "%s."%self._table in condition[0]])
-            _QUERY = "{} WHERE ({})".format(_QUERY, _WHERE)
+            condition_table = ["".join(condition).strip() for condition in self._where if not "." in condition[0] or "%s."%self._table in condition[0]]
+            if len(condition_table)>0:
+                _WHERE = " AND ".join(condition_table)
+                _QUERY = "{} WHERE ({})".format(_QUERY, _WHERE)
         if self._orwhere and len(self._orwhere) > 0:
             _ORWHERE = " AND ".join(["".join(condition).strip() for condition in self._orwhere if not "." in condition[0] or "%s."%self._table in condition[0]])
             _QUERY = "{} OR ({})".format(_QUERY, _ORWHERE)
@@ -276,21 +283,78 @@ class Connection():
 
         return _QUERY
 
-    # EXECUÇÃO DE COMANDO
-    def compare(self, obj, reg):
-        exists = [getattr(obj, key) == reg["%s.%s"%(self._table, key)] for key in self._class.__primary_key__]
-        return all(exists)
+    def insert_query(self, obj):
+        obj_data = obj.toDB()
+        sql_statement = "INSERT INTO {table} ({keys}) VALUES ({values}) ON DUPLICATE KEY UPDATE {onkeys}".format(
+            table = obj.__table__,
+            keys = ", ".join(obj_data.keys()),
+            values = ", ".join(["%({0})s".format(field) for field in obj_data.keys()]),
+            onkeys = ", ".join(["{0}=%({0})s".format(field)for field in obj_data.keys()])
+        )
+        last_row_id = self._db.save(sql_statement, obj_data)
+        if last_row_id:
+            obj.__dict__[obj.__primary_key__[0]] = last_row_id
 
+    # EXECUÇÃO DE COMANDO
+
+    def save(self):
+        for obj_to_commit in self.__commit__:
+            if obj_to_commit.__status__ == EntityStatus.modified or obj_to_commit.__status__ == EntityStatus.addedobject:
+                # PRIMEIRO OBJETO PRINCIPAL
+                if obj_to_commit.__status__ == EntityStatus.modified:
+                     self.insert_query(obj_to_commit)
+                # DO OBJECTS LIST
+                sub_objects = [ sub_obj for sub_obj in obj_to_commit.__commit__ if sub_obj.__status__ == EntityStatus.modified ]
+                for sub_object in sub_objects:
+                    field_data = [value for field, value in obj_to_commit.__dict__.items() if field.startswith("__") and not field.endswith("__") and hasattr(value,"table") and value.table == sub_object.__table__ and value.__class__.__name__== "ObjectList"]
+                    if len(field_data)==1:
+                        #SET KEY FROM PK OBJ
+                        setattr(sub_object, field_data[0].key, obj_to_commit.__dict__[field_data[0].reference])
+                        self.insert_query(obj_to_commit)
+        self._db.commit()
+
+    def add(self, obj = None):
+        try:
+            if obj!=None:
+                if isinstance(obj, self._class):
+                    obj.__status__ == EntityStatus.modified
+                    self.__commit__.append(obj)
+                else:
+                    raise Exception("{} table requires {} object".format(self._table, self._class.__name__))
+            return None
+        except Exception as e:
+            raise e
+
+    @property
+    def first(self):
+        query = self._write_select_query()
+        try:
+            result = self.__fill(self._db.fetchall(query), self._class)
+            return result[0] if len(result)>0 else None
+        except Exception as e:
+            print(e)
+            print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
 
     @property
     def all(self):
-        result = self._db.fetchall(self._write_select_query())
-        return self.__fill(result, self._class)
+        query = self._write_select_query()
+        try:
+            result = self._db.fetchall(query)
+            return self.__fill(result, self._class)
+        except Exception as e:
+            print(e)
+            print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
+
 
     # EXECUÇÃO DE COMANDO
     @property
     def fetch(self):
-        return self._db.fetchall(self._write_select_query(False))
+        query = self._write_select_query()
+        try:
+            return self._db.fetchall(self._write_select_query(False))
+        except Exception as e:
+            print(e)
+            print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
 
     def query(self, query, model=None):
         result = self._db.fetchall(query)
@@ -299,15 +363,13 @@ class Connection():
         return result
 
     def __fill(self, data, model):
-        object_list = ListType(model)
+        object_list = ListType(context=self, type=model)
         for row in data:
             row = {k:v for k,v in row.items() if v is not None}
-            object_exit = [obj for obj in object_list if self.compare(obj, row)]
+            object_exit = [obj for obj in object_list if all([getattr(obj, key) == row["%s.%s"%(self._table, key)] for key in self._class.__primary_key__])]
             if len(object_exit)==0:
-                obj = model(status=2, **row)
-                obj.__status__ = EntityStatus(2)
+                obj = model(context=self, **row)
                 object_list.append(obj)
             else :
                 object_exit[0].__setrelattr__(**row)
-                object_exit[0].__status__ = EntityStatus(2)
         return object_list

@@ -52,12 +52,6 @@ class AcompanhanteEnsaioFoto(Entity):
 	@Int(precision = 3, scale=0)
 	def foto_nua(self): pass
 
-	@Int(precision = 3, scale=0)
-	def foto_aprovada(self): pass
-
-	@String(max=155)
-	def foto_reprovada_motivo(self): pass
-
 	# One-to-One
 
 	@Object(name="AcompanhanteEnsaio", key="id", reference="id_ensaio_acompanhante", table="acompanhantes_ensaios")

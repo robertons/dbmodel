@@ -24,9 +24,6 @@ class FinanceiroFormaPagamento(Entity):
 	@ObjectList(name="AcompanhanteCaseiraVip", key="id_forma_pagamento", reference="id", table="acompanhantes_caseiras_vips")
 	def acompanhantes_caseiras_vips(self):pass
 
-	@ObjectList(name="AcompanhanteCompra", key="id_forma_pagamento", reference="id", table="acompanhantes_compras")
-	def acompanhantes_compras(self):pass
-
 	@ObjectList(name="AcompanhanteDestaque", key="id_forma_pagamento", reference="id", table="acompanhantes_destaques")
 	def acompanhantes_destaques(self):pass
 

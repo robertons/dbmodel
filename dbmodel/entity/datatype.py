@@ -3,6 +3,8 @@
 import decimal
 import datetime
 
+from dbmodel.entity.status import EntityStatus
+
 class ValidateValue:
 
     def __init__(self, pk=False, auto_increment=False, fk=False, not_null=False, required=False, max=None, name=None, type=None, format=None, precision=None, scale=None, key=None, reference=None, table=None):
@@ -149,9 +151,10 @@ class Object(ValidateValue):
 
 class ListType(list):
 
-    def __init__(self, type):
+    def __init__(self, context, type):
         try:
             self._type = type
+            self.__context__ = context
             super(ListType, self).__init__()
         except Exception as e:
             raise e
@@ -161,12 +164,69 @@ class ListType(list):
             if item.__class__.__name__ != self._type.__name__:
                 raise Exception('Item type not is %s' %self._type.__name__)
             super(ListType, self).append(item)
+            if self.__context__:
+                if "__status__" in self.__context__.__dict__:
+                    if self.__context__.__status__ == EntityStatus.created or self.__context__.__status__ == EntityStatus.filled:
+                        self.__context__.__status__ = EntityStatus.addedobject
+                    self.__context__.__commit__.append(item)
         except Exception as e:
             raise e
+
+    def add(self, item):
+        self.append(item)
 
     def toJSON(self, encode=False):
         try:
             return [item.toJSON(encode) if hasattr(item, "toJSON") else item for item in self]
+        except Exception as e:
+            raise e
+
+    def orderby(self, field):
+        try:
+            if len(self)>1:
+                _field, _order = field.strip(), "ASC"
+                if " " in _field:
+                    _field, _order = _field.split(" ")[0], _field.split(" ")[1]
+                _reverse = _order == "DESC"
+                self.sort(key=lambda x: x.__getattribute__(_field), reverse=_reverse)
+            return self
+        except Exception as e:
+            raise e
+
+    def where(self, condition):
+        try:
+            itens = filter(condition, self)
+            new_list= ListType(type=self._type)
+            for item in itens:
+                new_list.append(item)
+            return new_list
+        except Exception as e:
+            raise e
+
+    @property
+    def first(self):
+        try:
+            if len(self)>0:
+                return self[0]
+            else:
+                return None
+        except Exception as e:
+            raise e
+
+    @property
+    def last(self):
+        try:
+            if len(self)>0:
+                return self[-1]
+            else:
+                return None
+        except Exception as e:
+            raise e
+
+    @property
+    def count(self):
+        try:
+            return len(self)
         except Exception as e:
             raise e
 

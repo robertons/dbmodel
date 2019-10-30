@@ -25,7 +25,7 @@ class Log(Entity):
 	@String(max=45)
 	def log_tabela(self): pass
 
-	@String(max=4294967295)
+	@String(max=65535)
 	def log_registro(self): pass
 
 	@String(max=45)

@@ -55,21 +55,6 @@ class AcompanhanteEnsaio(Entity):
 	@Int(precision = 10, scale=0)
 	def ens_score(self): pass
 
-	@Int(precision = 3, scale=0)
-	def ens_aprovado(self): pass
-
-	@Int(precision = 3, scale=0)
-	def ens_status(self): pass
-
-	@Int(precision = 3, scale=0)
-	def ens_troca_capa(self): pass
-
-	@Int(precision = 3, scale=0)
-	def ens_troca_perfil(self): pass
-
-	@Int(precision = 3, scale=0)
-	def ens_troca_destaque(self): pass
-
 	# One-to-One
 
 	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")

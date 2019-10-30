@@ -44,10 +44,10 @@ class Usuario(Entity):
 	@ObjectList(name="AcompanhanteLog", key="id_usuario", reference="id", table="acompanhantes_logs")
 	def acompanhantes_logs(self):pass
 
-	@ObjectList(name="AcompanhanteOrdemServico", key="id_usuario_realizador", reference="id", table="acompanhantes_ordens_servicos")
+	@ObjectList(name="AcompanhanteOrdemServico", key="id_usuario_criador", reference="id", table="acompanhantes_ordens_servicos")
 	def acompanhantes_ordens_servicos(self):pass
 
-	@ObjectList(name="AcompanhanteOrdemServico", key="id_usuario_criador", reference="id", table="acompanhantes_ordens_servicos")
+	@ObjectList(name="AcompanhanteOrdemServico", key="id_usuario_realizador", reference="id", table="acompanhantes_ordens_servicos")
 	def acompanhantes_ordens_servicos(self):pass
 
 	@ObjectList(name="Log", key="id_usuario", reference="id", table="logs")

@@ -60,14 +60,14 @@ class Financeiro(Entity):
 	@Object(name="FinanceiroServico", key="id", reference="id_servico", table="financeiros_servicos")
 	def financeiros_servicos(self):pass
 
+	@Object(name="FinanceiroTipoDesconto", key="id", reference="id_tipo_desconto", table="financeiros_tipos_descontos")
+	def financeiros_tipos_descontos(self):pass
+
 	@Object(name="FinanceiroStatusPagamento", key="id", reference="id_status_pagamento", table="financeiros_status_pagamentos")
 	def financeiros_status_pagamentos(self):pass
 
 	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass
-
-	@Object(name="FinanceiroTipoDesconto", key="id", reference="id_tipo_desconto", table="financeiros_tipos_descontos")
-	def financeiros_tipos_descontos(self):pass
 
 	# One-to-many
 
@@ -79,9 +79,6 @@ class Financeiro(Entity):
 
 	@ObjectList(name="AcompanhanteCaseiraVip", key="id_financeiro", reference="id", table="acompanhantes_caseiras_vips")
 	def acompanhantes_caseiras_vips(self):pass
-
-	@ObjectList(name="AcompanhanteCompra", key="id_financeiro", reference="id", table="acompanhantes_compras")
-	def acompanhantes_compras(self):pass
 
 	@ObjectList(name="AcompanhanteDestaque", key="id_financeiro", reference="id", table="acompanhantes_destaques")
 	def acompanhantes_destaques(self):pass

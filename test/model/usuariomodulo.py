@@ -15,8 +15,8 @@ class UsuarioModulo(Entity):
 
 	# One-to-One
 
-	@Object(name="Modulo", key="id", reference="id_modulo", table="modulos")
-	def modulos(self):pass
-
 	@Object(name="Usuario", key="id", reference="id_usuario", table="usuarios")
 	def usuarios(self):pass
+
+	@Object(name="Modulo", key="id", reference="id_modulo", table="modulos")
+	def modulos(self):pass

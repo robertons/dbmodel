@@ -1,37 +1,39 @@
 #-*- coding: utf-8 -*-
 
-__private_methods__ = ["toJSON"]
+__private_methods__ = ["toJSON", "toDB"]
 
-from enum import Enum
-
-from dbmodel.entity.datatype  import *
+from dbmodel.entity.datatype import *
+from dbmodel.entity.status import EntityStatus
 from dbmodel.utils.inflector import Inflector, Portugues
-
-class EntityStatus(Enum):
-    created = 1
-    filled = 2
-    modified = 3
 
 class Entity(object):
 
-    def __init__(self, status=1, **kw):
+    def __init__(self, context=None, **kw):
         try:
-            self.__status__ = EntityStatus(status)
+            self.__context__ = context
+            self.__commit__ = []
+            self.__status__ = EntityStatus.created
             self.__table__ = Inflector(Portugues).tableize(self.__class__.__name__)
+            filled = False
             for item in self.__dir__():
                 if not item.startswith("__") and item not in __private_methods__:
                     self.__dict__["__%s"%item] = self.__getattribute__(item)
                     if self.__dict__["__%s"%item].name and not self.__dict__["__%s"%item].type:
                         self.__dict__["__%s"%item].type = getattr(__import__('model.{0}'.format(self.__dict__["__%s"%item].name.lower()), fromlist=[self.__dict__["__%s"%item].name]), self.__dict__["__%s"%item].name)
-                    self.__dict__[item] = None if self.__dict__["__%s"%item].__class__.__name__ != "ObjectList" else ListType(self.__dict__["__%s"%item].type)
+                    self.__dict__[item] = None if self.__dict__["__%s"%item].__class__.__name__ != "ObjectList" else ListType(context=self, type=self.__dict__["__%s"%item].type)
                     if item in kw:
+                        filled = True
                         self.__setattr__(item, kw[item])
                         del kw[item]
                     elif "%s.%s"%(self.__table__,item) in kw:
+                        filled = True
                         self.__setattr__(item, kw["%s.%s"%(self.__table__,item)])
                         del kw["%s.%s"%(self.__table__,item)]
             if len(kw) > 0:
+                filled = True
                 self.__setrelattr__(**kw)
+            if self.__context__ and filled:
+                self.__status__ = EntityStatus.filled
         except Exception as e:
             raise e
 
@@ -47,20 +49,30 @@ class Entity(object):
         try:
             if not item.startswith("__"):
                 if hasattr(self, "__%s"%item):
-                    self.__status__ = EntityStatus(3)
+                    self.__status__ = EntityStatus.modified
                     field = self.__getattribute__("__%s"%item)
                     if field.type and field.__class__.__name__ is "ObjectList" and isinstance(value, list):
                         for item_list in value:
                             if isinstance(item_list, dict):
-                                self.__dict__[item].append(field.type(**item_list))
+                                self.__dict__[item].append(field.type(context=self, **item_list))
                             if isinstance(item_list, field.type):
+                                item_list.__context__ = self
                                 self.__dict__[item].append(item_list)
                     else:
                         if field.type and isinstance(value, dict):
-                            field.value = field.type(**value)
+                            field.value = field.type(context=self, **value)
                         else:
+                            if field.type and field.__class__.__name__ is "Object":
+                                value.__context__ = self
                             field.value = value
                         self.__dict__[item] = field.value
+
+                    if self.__context__:
+                        object_exit = [obj for obj in self.__context__.__commit__ if all([getattr(obj, pk) == self.__dict__[pk] for pk in self.__primary_key__])]
+                        if len(object_exit)==0:
+                            self.__context__.__commit__.append(self)
+                        else:
+                            object_exit[0] = self
                 else:
                     raise Exception("%s field does not exist"%item)
             else:
@@ -71,6 +83,12 @@ class Entity(object):
     def toJSON(self, encode=False):
         try:
             return {k: CustomEncoder(v, self.__getattribute__("__%s"%k), encode) if encode else v if not hasattr(v, "toJSON") else v.toJSON() for k, v in self.__dict__.items() if not k.startswith("__") and v is not None }
+        except Exception as e:
+            raise e
+
+    def toDB(self):
+        try:
+            return {k: v for k, v in self.__dict__.items() if not k.startswith("__") and v is not None and not hasattr(v, "toJSON")}
         except Exception as e:
             raise e
 

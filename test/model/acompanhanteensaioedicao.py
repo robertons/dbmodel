@@ -54,23 +54,23 @@ class AcompanhanteEnsaioEdicao(Entity):
 
 	# One-to-One
 
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
+	def acompanhantes(self):pass
+
 	@Object(name="FinanceiroTipoDesconto", key="id", reference="id_tipo_desconto", table="financeiros_tipos_descontos")
 	def financeiros_tipos_descontos(self):pass
 
-	@Object(name="AcompanhanteEnsaio", key="id", reference="id_ensaio", table="acompanhantes_ensaios")
-	def acompanhantes_ensaios(self):pass
-
-	@Object(name="FinanceiroFormaPagamento", key="id", reference="id_forma_pagamento", table="financeiros_formas_pagamentos")
-	def financeiros_formas_pagamentos(self):pass
-
 	@Object(name="FinanceiroServico", key="id", reference="id_servico", table="financeiros_servicos")
 	def financeiros_servicos(self):pass
-
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
-	def acompanhantes(self):pass
 
 	@Object(name="FinanceiroStatusPagamento", key="id", reference="id_status_pagamento", table="financeiros_status_pagamentos")
 	def financeiros_status_pagamentos(self):pass
 
 	@Object(name="Financeiro", key="id", reference="id_financeiro", table="financeiros")
 	def financeiros(self):pass
+
+	@Object(name="AcompanhanteEnsaio", key="id", reference="id_ensaio", table="acompanhantes_ensaios")
+	def acompanhantes_ensaios(self):pass
+
+	@Object(name="FinanceiroFormaPagamento", key="id", reference="id_forma_pagamento", table="financeiros_formas_pagamentos")
+	def financeiros_formas_pagamentos(self):pass

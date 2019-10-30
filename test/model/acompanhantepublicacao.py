@@ -25,9 +25,6 @@ class AcompanhantePublicacao(Entity):
 	@String(max=155)
 	def pub_image(self): pass
 
-	@String(max=155)
-	def pub_video(self): pass
-
 	@Int(precision = 10, scale=0)
 	def pub_likes(self): pass
 
@@ -37,33 +34,7 @@ class AcompanhantePublicacao(Entity):
 	@Int(precision = 3, scale=0)
 	def pub_publicado(self): pass
 
-	@Int(precision = 3, scale=0)
-	def pub_moderado(self): pass
-
-	@Int(fk=True, not_null=True, precision = 10, scale=0)
-	def id_cidade(self): pass
-
-	@Int(not_null=True, precision = 3, scale=0)
-	def pub_processada(self): pass
-
-	@Int(precision = 3, scale=0)
-	def pub_video_expanded(self): pass
-
-	@Int(precision = 3, scale=0)
-	def pub_video_auth(self): pass
-
-	@String(max=155)
-	def pub_video_original(self): pass
-
 	# One-to-One
-
-	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
-	def cidades(self):pass
 
 	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass
-
-	# One-to-many
-
-	@ObjectList(name="AcompanhanteAvaliacao", key="id_acompanhante_publicacao", reference="id", table="acompanhantes_avaliacoes")
-	def acompanhantes_avaliacoes(self):pass

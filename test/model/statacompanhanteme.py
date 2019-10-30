@@ -27,10 +27,10 @@ class StatAcompanhanteMe(Entity):
 
 	# One-to-One
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante")
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass
 
 	# One-to-many
 
-	@ObjectList(name="StatAcompanhanteDia", key="id_mes", reference="id")
+	@ObjectList(name="StatAcompanhanteDia", key="id_mes", reference="id", table="stat_acompanhante_dia")
 	def stat_acompanhante_dia(self):pass

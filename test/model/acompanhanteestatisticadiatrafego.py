@@ -3,12 +3,9 @@ from dbmodel.entity import *
 
 class AcompanhanteEstatisticaDiaTrafego(Entity):
 
-	__primary_key__ = ['id', 'stat_ano', 'stat_mes', 'stat_dia', 'id_acompanhante']
+	__primary_key__ = ['stat_ano', 'stat_mes', 'stat_dia', 'id_acompanhante']
 
 	# FIELDS
-
-	@Int(pk=True, auto_increment=True, not_null=True, precision = 10, scale=0)
-	def id(self): pass
 
 	@Int(pk=True, not_null=True, precision = 10, scale=0)
 	def stat_ano(self): pass
@@ -28,7 +25,7 @@ class AcompanhanteEstatisticaDiaTrafego(Entity):
 	@String(max=45)
 	def traf_ip(self): pass
 
-	@String(max=255)
+	@String(max=150)
 	def traf_http_referer(self): pass
 
 	@String(max=45)

@@ -33,5 +33,5 @@ class StatAcompanhanteDiaTrafego(Entity):
 
 	# One-to-One
 
-	@Object(name="StatAcompanhanteDia", key="id", reference="id_dia")
+	@Object(name="StatAcompanhanteDia", key="id", reference="id_dia", table="stat_acompanhante_dia")
 	def stat_acompanhante_dia(self):pass

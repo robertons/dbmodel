@@ -52,3 +52,22 @@ class DataBase():
             raise e
         finally:
             cursor.close()
+
+    # EXECUÇÃO SELECT SQL
+    def save(self, sql_statement, data):
+        cursor = self.new_cursor()
+        try:
+            cursor.execute(sql_statement, data)
+            return cursor.lastrowid if cursor.lastrowid > 0 else None
+        except mariadb.Error as e:
+            raise e
+        except Exception as e:
+            raise e
+        finally:
+            cursor.close()
+
+    def commit(self):
+        try:
+            self._conn.commit()
+        except Exception as e:
+            self._conn.rollback()

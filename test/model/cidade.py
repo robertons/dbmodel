@@ -59,17 +59,8 @@ class Cidade(Entity):
 	@ObjectList(name="Acompanhante", key="id_cidade", reference="id", table="acompanhantes")
 	def acompanhantes(self):pass
 
-	@ObjectList(name="AcompanhanteBairro", key="id_cidade", reference="id", table="acompanhantes_bairros")
-	def acompanhantes_bairros(self):pass
-
-	@ObjectList(name="AcompanhanteCidade", key="id_cidade", reference="id", table="acompanhantes_cidades")
-	def acompanhantes_cidades(self):pass
-
 	@ObjectList(name="AcompanhanteNotificacao", key="id_cidade", reference="id", table="acompanhantes_notificacoes")
 	def acompanhantes_notificacoes(self):pass
-
-	@ObjectList(name="AcompanhantePublicacao", key="id_cidade", reference="id", table="acompanhantes_publicacoes")
-	def acompanhantes_publicacoes(self):pass
 
 	@ObjectList(name="Bairro", key="id_cidade", reference="id", table="bairros")
 	def bairros(self):pass

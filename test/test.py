@@ -10,21 +10,46 @@ sys.path.append('/Users/roberto/projects/dbmodel')
 
 import dbmodel
 
+from model.deploy import Deploy
+from model.acompanhanteestatistica import AcompanhanteEstatistica
+
 def main(arg):
     #AWS
-    db = dbmodel.Connection(db_user="idp_master", db_password="aWkqH2MJFhCspZFV4m3JugUnnu", db_host="idp-instance.celwa7bjtmnw.us-east-2.rds.amazonaws.com", db_port=3306, db_database="ilhadoprazer")
+    #db = dbmodel.Connection(db_user="idp_master", db_password="aWkqH2MJFhCspZFV4m3JugUnnu", db_host="idp-instance.celwa7bjtmnw.us-east-2.rds.amazonaws.com", db_port=3306, db_database="ilhadoprazer")
 
     #LOCAL
-    #db = dbmodel.Connection(db_user="root", db_password="", db_host="localhost", db_port=3306, db_database="ilhadoprazer")
+    db = dbmodel.Connection(db_user="root", db_password="", db_host="localhost", db_port=3306, db_database="ilhadoprazer")
 
-    lista = db.acompanhantes_avaliacoes.include("acompanhantes_avaliacoes_respostas").join("acompanhantes").where("acompanhantes.aco_publicada=1, acompanhantes_avaliacoes.ava_aprovado=1, acompanhantes_avaliacoes.id_acompanhante_avaliacao IS NULL, acompanhantes_avaliacoes_respostas.ava_aprovado=1").select("acompanhantes_avaliacoes.*, acompanhantes_avaliacoes_respostas.*").orderby("id_acompanhante ASC, ava_likes DESC, acompanhantes_avaliacoes_respostas.ava_ordem_resposta ASC, acompanhantes_avaliacoes_respostas.ava_data ASC").all
 
-    for item in lista:
-        print(item.ava_comentario)
-        for resp in item.acompanhantes_avaliacoes_respostas:
-            print(resp.ava_comentario)
-    #print(lista)
+    acompanhante = db.acompanhantes.join("sexos").where("id=299").first
 
+
+
+    new_deploy = Deploy()
+    new_deploy.deploy_url = "acompanhantes-es"
+    new_deploy.deploy_data = datetime.now()
+    new_deploy.deploy_realizado = 0
+
+    db.deploys.add(new_deploy)
+
+
+    acompanhante.aco_nome = "Roberto Teste"
+
+    estatistica = AcompanhanteEstatistica()
+    estatistica.stat_ano = 2019
+    estatistica.stat_mes = 11
+    estatistica.stat_acessos_unicos = 10
+    estatistica.stat_acessos_totais = 20
+    acompanhante.acompanhantes_estatisticas.add(estatistica)
+
+    #print(db.__commit__)
+    #for value in db.__commit__:
+    #    print(value.__status__)
+    #    for subvalue in value.__commit__:
+    #        print(subvalue.__status__)
+    #        print(subvalue.toJSON())
+
+    db.save()
     db.close()
 
 if __name__ == "__main__":

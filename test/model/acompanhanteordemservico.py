@@ -39,14 +39,14 @@ class AcompanhanteOrdemServico(Entity):
 
 	# One-to-One
 
-	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
-	def acompanhantes(self):pass
-
-	@Object(name="Usuario", key="id", reference="id_usuario_realizador", table="usuarios")
+	@Object(name="Usuario", key="id", reference="id_usuario_criador", table="usuarios")
 	def usuarios(self):pass
 
 	@Object(name="AcompanhanteOrdemServicoTipo", key="id", reference="id_acompanhante_ordem_servico_tipo", table="acompanhantes_ordens_servicos_tipos")
 	def acompanhantes_ordens_servicos_tipos(self):pass
 
-	@Object(name="Usuario", key="id", reference="id_usuario_criador", table="usuarios")
+	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
+	def acompanhantes(self):pass
+
+	@Object(name="Usuario", key="id", reference="id_usuario_realizador", table="usuarios")
 	def usuarios(self):pass

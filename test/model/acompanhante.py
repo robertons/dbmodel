@@ -241,9 +241,6 @@ class Acompanhante(Entity):
 	@String(not_null=True, max=155)
 	def aco_bairro(self): pass
 
-	@String(max=155)
-	def aco_logradouro(self): pass
-
 	@Int(fk=True, not_null=True, precision = 10, scale=0)
 	def id_estado(self): pass
 
@@ -264,20 +261,20 @@ class Acompanhante(Entity):
 
 	# One-to-One
 
-	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
-	def cidades(self):pass
+	@Object(name="Cep", key="id", reference="id_cep", table="ceps")
+	def ceps(self):pass
 
 	@Object(name="Bairro", key="id", reference="id_bairro", table="bairros")
 	def bairros(self):pass
 
-	@Object(name="Sexo", key="id", reference="id_sexo", table="sexos")
-	def sexos(self):pass
-
-	@Object(name="Cep", key="id", reference="id_cep", table="ceps")
-	def ceps(self):pass
-
 	@Object(name="TipoFisico", key="id", reference="id_tipo_fisico", table="tipos_fisicos")
 	def tipos_fisicos(self):pass
+
+	@Object(name="Cidade", key="id", reference="id_cidade", table="cidades")
+	def cidades(self):pass
+
+	@Object(name="Regiao", key="id", reference="id_regiao", table="regioes")
+	def regioes(self):pass
 
 	@Object(name="TipoCadastro", key="id", reference="id_tipo_cadastro", table="tipos_cadastros")
 	def tipos_cadastros(self):pass
@@ -285,8 +282,8 @@ class Acompanhante(Entity):
 	@Object(name="Estado", key="id", reference="id_estado", table="estados")
 	def estados(self):pass
 
-	@Object(name="Regiao", key="id", reference="id_regiao", table="regioes")
-	def regioes(self):pass
+	@Object(name="Sexo", key="id", reference="id_sexo", table="sexos")
+	def sexos(self):pass
 
 	# One-to-many
 
@@ -302,9 +299,6 @@ class Acompanhante(Entity):
 	@ObjectList(name="AcompanhanteAvaliacao", key="id_acompanhante", reference="id", table="acompanhantes_avaliacoes")
 	def acompanhantes_avaliacoes(self):pass
 
-	@ObjectList(name="AcompanhanteBairro", key="id_acompanhante", reference="id", table="acompanhantes_bairros")
-	def acompanhantes_bairros(self):pass
-
 	@ObjectList(name="AcompanhanteCaseiraAdicional", key="id_acompanhante", reference="id", table="acompanhantes_caseiras_adicionais")
 	def acompanhantes_caseiras_adicionais(self):pass
 
@@ -313,12 +307,6 @@ class Acompanhante(Entity):
 
 	@ObjectList(name="AcompanhanteCaseiraVip", key="id_acompanhante", reference="id", table="acompanhantes_caseiras_vips")
 	def acompanhantes_caseiras_vips(self):pass
-
-	@ObjectList(name="AcompanhanteCidade", key="id_acompanhante", reference="id", table="acompanhantes_cidades")
-	def acompanhantes_cidades(self):pass
-
-	@ObjectList(name="AcompanhanteCompra", key="id_acompanhante", reference="id", table="acompanhantes_compras")
-	def acompanhantes_compras(self):pass
 
 	@ObjectList(name="AcompanhanteDestaque", key="id_acompanhante", reference="id", table="acompanhantes_destaques")
 	def acompanhantes_destaques(self):pass
@@ -370,3 +358,6 @@ class Acompanhante(Entity):
 
 	@ObjectList(name="Financeiro", key="id_acompanhante", reference="id", table="financeiros")
 	def financeiros(self):pass
+
+	@ObjectList(name="StatAcompanhanteMe", key="id_acompanhante", reference="id", table="stat_acompanhante_mes")
+	def stat_acompanhante_mes(self):pass

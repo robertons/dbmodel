@@ -72,9 +72,6 @@ class AcompanhanteAnuncio(Entity):
 
 	# One-to-One
 
-	@Object(name="FinanceiroTipoDesconto", key="id", reference="id_tipo_desconto", table="financeiros_tipos_descontos")
-	def financeiros_tipos_descontos(self):pass
-
 	@Object(name="AcompanhanteAnuncioStatus", key="id", reference="id_anuncio_status", table="acompanhantes_anuncios_status")
 	def acompanhantes_anuncios_status(self):pass
 
@@ -84,14 +81,17 @@ class AcompanhanteAnuncio(Entity):
 	@Object(name="FinanceiroServico", key="id", reference="id_servico", table="financeiros_servicos")
 	def financeiros_servicos(self):pass
 
+	@Object(name="FinanceiroTipoDesconto", key="id", reference="id_tipo_desconto", table="financeiros_tipos_descontos")
+	def financeiros_tipos_descontos(self):pass
+
 	@Object(name="FinanceiroStatusPagamento", key="id", reference="id_status_pagamento", table="financeiros_status_pagamentos")
 	def financeiros_status_pagamentos(self):pass
 
 	@Object(name="Acompanhante", key="id", reference="id_acompanhante", table="acompanhantes")
 	def acompanhantes(self):pass
 
-	@Object(name="AcompanhanteAnuncioTipo", key="id", reference="id_tipo_anuncio", table="acompanhantes_anuncios_tipos")
-	def acompanhantes_anuncios_tipos(self):pass
-
 	@Object(name="Financeiro", key="id", reference="id_financeiro", table="financeiros")
 	def financeiros(self):pass
+
+	@Object(name="AcompanhanteAnuncioTipo", key="id", reference="id_tipo_anuncio", table="acompanhantes_anuncios_tipos")
+	def acompanhantes_anuncios_tipos(self):pass

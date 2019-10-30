@@ -144,6 +144,7 @@ class Base:
 class Portugues(Base):
 
     def pluralize(self, word):
+
         rules = [
             ['(?i)r$', 'res'],
             ['(?i)m$', 'ns'],
@@ -201,14 +202,11 @@ class Portugues(Base):
 
         lower_cased_word = word.lower()
 
-        for uncountable_word in uncountable_words:
-            if lower_cased_word[-1*len(uncountable_word):] == uncountable_word:
-                return word
+        if lower_cased_word in uncountable_words:
+            return word
 
-        for irregular in irregular_words.keys():
-            match = re.search('('+irregular+')$', word, re.IGNORECASE)
-            if match:
-                return re.sub('(?i)'+irregular+'$', match.expand('\\1')[0]+irregular_words[irregular][1:], word)
+        if lower_cased_word in irregular_words:
+            return irregular_words[word]
 
         for rule in range(len(rules)):
             match = re.search(rules[rule][0], word, re.IGNORECASE)
