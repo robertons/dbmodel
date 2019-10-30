@@ -40,6 +40,7 @@ def main(arg):
     estatistica.stat_mes = 11
     estatistica.stat_acessos_unicos = 10
     estatistica.stat_acessos_totais = 20
+
     acompanhante.acompanhantes_estatisticas.add(estatistica)
 
     #print(db.__commit__)

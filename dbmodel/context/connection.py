@@ -310,7 +310,7 @@ class Connection():
                     if len(field_data)==1:
                         #SET KEY FROM PK OBJ
                         setattr(sub_object, field_data[0].key, obj_to_commit.__dict__[field_data[0].reference])
-                        self.insert_query(obj_to_commit)
+                        self.insert_query(sub_object)
         self._db.commit()
 
     def add(self, obj = None):

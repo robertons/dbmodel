@@ -196,7 +196,7 @@ class ListType(list):
     def where(self, condition):
         try:
             itens = filter(condition, self)
-            new_list= ListType(type=self._type)
+            new_list= ListType(context=self.__context__ , type=self._type)
             for item in itens:
                 new_list.append(item)
             return new_list
