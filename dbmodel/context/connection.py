@@ -280,7 +280,6 @@ class Connection():
             _QUERY = "{} ORDER BY {}".format(_QUERY, _ORDERBY)
         if self._limit:
             _QUERY = "{} LIMIT {},{}".format(_QUERY, self._limit[0], self._limit[1])
-
         return _QUERY
 
     def insert_query(self, obj):
@@ -365,11 +364,22 @@ class Connection():
     def __fill(self, data, model):
         object_list = ListType(context=self, type=model)
         for row in data:
-            row = {k:v for k,v in row.items() if v is not None}
-            object_exit = [obj for obj in object_list if all([getattr(obj, key) == row["%s.%s"%(self._table, key)] for key in self._class.__primary_key__])]
-            if len(object_exit)==0:
-                obj = model(context=self, **row)
-                object_list.append(obj)
-            else :
-                object_exit[0].__setrelattr__(**row)
+            try:
+                row = {k:v for k,v in row.items() if v is not None}
+                object_exit = [obj for obj in object_list if all([getattr(obj, key) == row["%s.%s"%(self._table, key)] for key in self._class.__primary_key__])]
+                if len(object_exit)==0:
+                    try:
+                        obj = model(context=self, **row)
+                        object_list.append(obj)
+                    except Exception as e:
+                        print("Error fill object row {}".format(row))
+                        raise  e
+                else :
+                    try:
+                        object_exit[0].__setrelattr__(**row)
+                    except Exception as e:
+                        print("Error fill relational row {}".format(row))
+                        raise e
+            except Exception as e:
+                print("Error check row {}".format(row))
         return object_list

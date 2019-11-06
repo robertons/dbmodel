@@ -40,10 +40,11 @@ class Entity(object):
     def __setrelattr__(self, **kw):
         relation_kw = {item.split(".")[0]: {value[0].split(".")[1]:value[1] for value in kw.items() if item.split(".")[0] in value[0]} for item in sorted(kw) if "." in item and not "%s."%self.__table__ in item}
         for _table, _data in relation_kw.items():
-            if self.__dict__["__%s"%_table].__class__.__name__ == "Object" or isinstance(_data, list):
-                self.__setattr__(_table, _data)
-            if self.__dict__["__%s"%_table].__class__.__name__ == "ObjectList" and isinstance(_data, dict):
-                self.__setattr__(_table, [_data])
+            field = self.__getattribute__("__%s"%_table)
+            if field.__class__.__name__ == "Object":
+                self.__dict__[_table] = field.type(context=self, **_data)
+            if field.__class__.__name__ == "ObjectList":
+                self.__dict__[_table].append(field.type(context=self, **_data))
 
     def __setattr__(self, item, value):
         try:
