@@ -69,7 +69,7 @@ class Entity(object):
                         self.__dict__[item] = field.value
 
                     if self.__context__:
-                        object_exit = [obj for obj in self.__context__.__commit__ if all([getattr(obj, pk) == self.__dict__[pk] for pk in self.__primary_key__])]
+                        object_exit = [obj for obj in self.__context__.__commit__ if obj == self]
                         if len(object_exit)==0:
                             self.__context__.__commit__.append(self)
                         else:
@@ -80,6 +80,11 @@ class Entity(object):
                 super().__setattr__(item, value)
         except Exception as e:
             raise e
+
+    def __eq__(self, other):
+        if self.__class__.__name__ != other.__class__.__name__:
+            return False
+        return all([getattr(other, pk) == self.__dict__[pk] for pk in self.__primary_key__])
 
     def toJSON(self, encode=False):
         try:
