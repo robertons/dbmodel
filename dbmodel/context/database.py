@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import mysql.connector as mariadb
 
+
 class DataBase():
 
     # Init
@@ -8,9 +9,11 @@ class DataBase():
         try:
             self._deletelist = []
             if not db_ssl:
-                self._conn = mariadb.connect(user=db_user, password=db_password, host=db_host, port=db_port, database=db_database)
+                self._conn = mariadb.connect(
+                    user=db_user, password=db_password, host=db_host, port=db_port, database=db_database)
             else:
-                self._conn = mariadb.connect(user=db_user, password=db_password, host=db_host, port=db_port, database=db_database, ssl_ca=db_ssl_ca, ssl_cert=db_ssl_cert, ssl_key=db_ssl_key)
+                self._conn = mariadb.connect(user=db_user, password=db_password, host=db_host, port=db_port,
+                                             database=db_database, ssl_ca=db_ssl_ca, ssl_cert=db_ssl_cert, ssl_key=db_ssl_key)
         # ERRO CONEXÃO COM BANCO DE DADOS
         except mariadb.Error as e:
             raise e

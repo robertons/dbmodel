@@ -47,7 +47,8 @@ class Base:
         "underscored_word".
         This can be really useful for creating friendly URLs.'''
 
-        new_word = re.sub('[^A-Z^a-z^0-9^\/]+', '_', re.sub('([a-z\d])([A-Z])', '\\1_\\2', re.sub('([A-Z]+)([A-Z][a-z])', '\\1_\\2', re.sub('::', '/', word)))).lower()
+        new_word = re.sub('[^A-Z^a-z^0-9^\/]+', '_', re.sub('([a-z\d])([A-Z])', '\\1_\\2',
+                                                            re.sub('([A-Z]+)([A-Z][a-z])', '\\1_\\2', re.sub('::', '/', word)))).lower()
         return self.pluralize(new_word) if "_" not in new_word else "_".join([self.pluralize(w) for w in new_word.split("_")])
 
     def humanize(self, word, uppercase=''):
@@ -70,7 +71,7 @@ class Base:
         "who's online" will be converted to "whoSOnline"'''
 
         word = self.camelize(word)
-        return word[0].lower()+word[1:]
+        return word[0].lower() + word[1:]
 
     def tableize(self, class_name):
         ''' Converts a class name to its table name according to rails
@@ -98,7 +99,7 @@ class Base:
         elif number % 10 == 3:
             tail = 'rd'
 
-        return str(number)+tail
+        return str(number) + tail
 
     def unaccent(self, text):
         '''Transforms a string to its unaccented version.
@@ -138,7 +139,7 @@ class Base:
         else:
             tail = 'id'
 
-        return self.underscore(self.demodulize(self.singularize(class_name)))+tail
+        return self.underscore(self.demodulize(self.singularize(class_name))) + tail
 
 
 class Portugues(Base):
@@ -193,9 +194,9 @@ class Portugues(Base):
             'fossil': 'fosseis',
             'cep': 'ceps',
             'log': 'logs',
-            'banner' : 'banners',
-            'faq' : 'faqs',
-            'newsletter' : 'newsletters',
+            'banner': 'banners',
+            'faq': 'faqs',
+            'newsletter': 'newsletters',
             'vip': 'vips',
             'deploy': 'deploys'
         }
@@ -214,7 +215,8 @@ class Portugues(Base):
                 groups = match.groups()
                 for k in range(0, len(groups)):
                     if groups[k] is None:
-                        rules[rule][1] = rules[rule][1].replace('\\'+str(k+1), '')
+                        rules[rule][1] = rules[rule][1].replace(
+                            '\\' + str(k + 1), '')
                 return re.sub(rules[rule][0], rules[rule][1], word)
 
         return word
@@ -280,7 +282,7 @@ class Portugues(Base):
                 'logs': 'log',
                 'banners': 'banner',
                 'faqs': 'faq',
-                'newsletters' : 'newsletter',
+                'newsletters': 'newsletter',
                 'vips': 'vip',
                 'deploys': 'deploy',
             }
@@ -288,13 +290,13 @@ class Portugues(Base):
             lower_cased_word = word.lower()
 
             for uncountable_word in uncountable_words:
-                if lower_cased_word[-1*len(uncountable_word):] == uncountable_word:
+                if lower_cased_word[-1 * len(uncountable_word):] == uncountable_word:
                     return word
 
             for irregular in irregular_words.keys():
-                match = re.search('('+irregular+')$', word, re.IGNORECASE)
+                match = re.search('(' + irregular + ')$', word, re.IGNORECASE)
                 if match:
-                    return re.sub('(?i)'+irregular+'$', match.expand('\\1')[0]+irregular_words[irregular][1:], word)
+                    return re.sub('(?i)' + irregular + '$', match.expand('\\1')[0] + irregular_words[irregular][1:], word)
 
             for rule in range(len(rules)):
                 match = re.search(rules[rule][0], word, re.IGNORECASE)
@@ -302,7 +304,8 @@ class Portugues(Base):
                     groups = match.groups()
                     for k in range(0, len(groups)):
                         if groups[k] is None:
-                            rules[rule][1] = rules[rule][1].replace('\\'+str(k+1), '')
+                            rules[rule][1] = rules[rule][1].replace(
+                                '\\' + str(k + 1), '')
                         return re.sub(rules[rule][0], rules[rule][1], word)
             return word
         return word
