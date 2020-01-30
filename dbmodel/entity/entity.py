@@ -127,7 +127,7 @@ class Entity(object):
 
     def toJSON(self):
         try:
-            return {k: v if not hasattr(v, "toJSON") else v.toJSON() for k, v in self.__dict__.items() if not k.startswith("__") and v is not None}
+            return {k: v if not hasattr(v, "toJSON") else v.toJSON() for k, v in self.__dict__.items() if not k.startswith("__") and v is not None and (v.__class__.__name__ != "ListType" or len(v)>0)}
         except Exception as e:
             raise e
 
