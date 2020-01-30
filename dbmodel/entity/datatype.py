@@ -8,7 +8,7 @@ from dbmodel.entity.status import EntityStatus
 
 class ValidateValue:
 
-    def __init__(self, pk=False, auto_increment=False, fk=False, not_null=False, required=False, max=None, name=None, type=None, format=None, precision=None, scale=None, key=None, reference=None, table=None):
+    def __init__(self, pk=False, auto_increment=False, fk=False, not_null=False, required=False, max=None, name=None, type=None, format=None, precision=None, scale=None, key=None, reference=None, table=None, intermediate=None, inter_key=None, end_key=None):
         self.pk = pk
         self.fk = fk
         self.required = required
@@ -22,6 +22,9 @@ class ValidateValue:
         self.key = key
         self.reference = reference
         self.table = table
+        self.intermediate = intermediate
+        self.inter_key = inter_key
+        self.end_key = end_key
 
     def __call__(self, obj, **kw):
         self.func = obj
@@ -159,6 +162,30 @@ class Object(ValidateValue):
         super().__setattr__(attr, data)
 
 
+class ObjectList(ValidateValue):
+
+    def __init__(self, **attrs):
+        super().__init__(**attrs)
+
+    def __setattr__(self, attr, data):
+        if attr == "value" and data is not None:
+            raise Exception(
+                "method not allowed, please use `%s.append(Object)`" % self.field_name)
+        super().__setattr__(attr, data)
+
+
+class ObjectManyList(ValidateValue):
+
+    def __init__(self, **attrs):
+        super().__init__(**attrs)
+
+    def __setattr__(self, attr, data):
+        if attr == "value" and data is not None:
+            raise Exception(
+                "method not allowed, please use `%s.append(Object)`" % self.field_name)
+        super().__setattr__(attr, data)
+
+
 class ListType(list):
 
     def __init__(self, context, type):
@@ -185,9 +212,9 @@ class ListType(list):
     def add(self, item):
         self.append(item)
 
-    def toJSON(self, encode=False):
+    def toJSON(self):
         try:
-            return [item.toJSON(encode) if hasattr(item, "toJSON") else item for item in self]
+            return [item.toJSON() if hasattr(item, "toJSON") else item for item in self]
         except Exception as e:
             raise e
 
@@ -240,15 +267,3 @@ class ListType(list):
             return len(self)
         except Exception as e:
             raise e
-
-
-class ObjectList(ValidateValue):
-
-    def __init__(self, **attrs):
-        super().__init__(**attrs)
-
-    def __setattr__(self, attr, data):
-        if attr == "value" and data is not None:
-            raise Exception(
-                "method not allowed, please use `%s.append(Object)`" % self.field_name)
-        super().__setattr__(attr, data)

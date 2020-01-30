@@ -10,7 +10,8 @@ from dbmodel.entity.entity import EntityStatus
 
 sql_operators = ['!=', '>=', '>', '<=', '<', '=', ' IS NULL ',
                  ' NOT IS ', ' IS ', ' NOT LIKE ', ' LIKE ', ' ']
-relational_types = ["Object", "ObjectList"]
+
+relational_types = ["Object", "ObjectList", "ObjectManyList"]
 
 
 class Connection():
@@ -21,6 +22,7 @@ class Connection():
             self._db = DataBase(db_user, db_password, db_host, db_port,
                                 db_database, db_ssl, db_ssl_ca, db_ssl_cert, db_ssl_key)
             self.__commit__ = []
+            self.__queue__ = []
         except Exception as e:
             raise e
 
@@ -207,6 +209,7 @@ class Connection():
     def format_join(self, _SELECT, _FROM, _LIST, _TYPE):
 
         for join in _LIST:
+
             _SELECT_JOIN = ""
 
             if not self._select or len(self._select) == 0 or "%s.*" % join in self._select:
@@ -216,17 +219,34 @@ class Connection():
                 _SELECT_JOIN = ", ".join(["%s AS '%s'" % (
                     _selected, _selected) for _selected in self._select if "." in _selected and "%s." % join in _selected])
 
-            _FROM_JOIN = "{0} JOIN {1} AS {2} ON {2}.{3} = {4}.{5}".format(
-                _TYPE,
-                self._class.__dict__[join].__dict__["table"],
-                join,
-                self._class.__dict__[join].__dict__["key"],
-                self._table,
-                self._class.__dict__[join].__dict__["reference"],
-            )
+            # SE NÃO FOR MANY TO MANY FAZ JOIN NORMAL
+            if self._class.__dict__[join].__class__.__name__ != "ObjectManyList":
+
+                _FROM_JOIN = "{0} JOIN {1} AS {2} ON {2}.{3} = {4}.{5}".format(
+                    _TYPE,
+                    self._class.__dict__[join].__dict__["table"],
+                    join,
+                    self._class.__dict__[join].__dict__["key"],
+                    self._table,
+                    self._class.__dict__[join].__dict__["reference"],
+                )
+
+            elif self._class.__dict__[join].__class__.__name__ == "ObjectManyList":
+
+                _FROM_JOIN = "{0} JOIN {1} AS {1} ON {1}.{2} = {3}.{4} {0} JOIN {5} AS {5} ON {5}.{6} = {1}.{7}".format(
+                    _TYPE,
+                    self._class.__dict__[join].__dict__["intermediate"],
+                    self._class.__dict__[join].__dict__["key"],
+                    self._table,
+                    self._class.__dict__[join].__dict__["reference"],
+                    self._class.__dict__[join].__dict__["table"],
+                    self._class.__dict__[join].__dict__["end_key"],
+                    self._class.__dict__[join].__dict__["inter_key"],
+                )
 
             _JOIN_CONDITION = [" ".join(
                 condition) for condition in self._where if "%s." % join in condition[0]] if self._where else []
+
             if len(_JOIN_CONDITION) > 0:
                 _FROM_JOIN = "{} AND {}".format(
                     _FROM_JOIN, " AND ".join(_JOIN_CONDITION))
@@ -305,9 +325,17 @@ class Connection():
                 _QUERY, self._limit[0], self._limit[1])
         return _QUERY
 
+    def delete_query(self, obj):
+        delete_keys = ["{pk}={value}".format(pk=key, value=obj.__dict__[
+                                             key]) for key in obj.__primary_key__]
+        sql_statement = "DELETE FROM {table} WHERE {keys}".format(
+            table=obj.__table__,
+            keys=", ".join(delete_keys)
+        )
+        self._db.save(sql_statement, {})
+
     def insert_query(self, obj):
         obj_data = obj.toDB()
-        print(obj_data)
         sql_statement = "INSERT INTO {table} ({keys}) VALUES ({values}) ON DUPLICATE KEY UPDATE {onkeys}".format(
             table=obj.__table__,
             keys=", ".join(obj_data.keys()),
@@ -317,44 +345,146 @@ class Connection():
                               for field in obj_data.keys()])
         )
         last_row_id = self._db.save(sql_statement, obj_data)
-
         if last_row_id:
             obj.__dict__[obj.__primary_key__[0]] = last_row_id
+
+    def many_to_many_query(self, field_data, object, sub_object):
+
+        intermediate_data = {field_data.key: object.__dict__[
+            field_data.reference], field_data.inter_key: sub_object.__dict__[field_data.end_key]}
+
+        sql_statement = "INSERT INTO {table} ({keys}) VALUES ({values}) ON DUPLICATE KEY UPDATE {onkeys}".format(
+            table=field_data.intermediate,
+            keys=", ".join(intermediate_data.keys()),
+            values=", ".join(["%({0})s".format(field)
+                              for field in intermediate_data.keys()]),
+            onkeys=", ".join(["{0}=%({0})s".format(field)
+                              for field in intermediate_data.keys()])
+        )
+
+        self._db.save(sql_statement, intermediate_data)
 
     # EXECUÇÃO DE COMANDO
 
     def save(self):
+
+        # DO QUEUE FIRST
+        for insert in self.__queue__:
+            self.__commit__.insert(0, insert)
+
+        self.__queue__ = []
+
+        # DO OBJECTS COMMITS
         for obj_to_commit in self.__commit__:
-            if obj_to_commit.__status__ == EntityStatus.modified or obj_to_commit.__status__ == EntityStatus.addedobject:
-                # PRIMEIRO OBJETO PRINCIPAL
-                if obj_to_commit.__status__ == EntityStatus.modified:
-                    self.insert_query(obj_to_commit)
-                # DO OBJECTS LIST
-                sub_objects = [
-                    sub_obj for sub_obj in obj_to_commit.__commit__ if sub_obj.__status__ == EntityStatus.modified]
+
+            # DELETE OBJECT
+            if obj_to_commit.__status__ == EntityStatus.deleted:
+                self.delete_query(obj_to_commit)
+                obj_to_commit = None
+
+            # INSERT OR UPDATE OBJECT
+            elif obj_to_commit.__status__ == EntityStatus.modified or obj_to_commit.__status__ == EntityStatus.addedobject:
+
+                # DEFINE ORDER ACTIONS
+                to_many_objects = []
+
+                # GET RELACIONAL OBJECTS
+                sub_objects = [sub_obj for sub_obj in obj_to_commit.__commit__]
                 for sub_object in sub_objects:
+
                     field_data = [value for field, value in obj_to_commit.__dict__.items() if field.startswith(
                         "__") and not field.endswith("__") and hasattr(value, "table") and value.table == sub_object.__table__]
+
+                    # OBJECT RELACIONAL
                     if len(field_data) == 1:
-                        if field_data[0].__class__.__name__ == "ObjectList":
-                            # SET KEY FROM PK OBJ
-                            setattr(sub_object, field_data[0].key, obj_to_commit.__dict__[
-                                    field_data[0].reference])
+
+                        field_data = field_data[0]
+
+                        # IF ONE-TO-ONE DO ACTION BEFORE
+                        if field_data.__class__.__name__ == "Object":
+
+                            # IF HAS MODIFIED DO SQL ACTION
+                            if sub_object.__status__ == EntityStatus.modified:
+                                self.insert_query(sub_object)
+
+                        # IF ONE TO MANY OR MANY-TO-MANY APPEND TO DO ACTION AFTER PRINCIPAL OBJECT
+                        if field_data.__class__.__name__ == "ObjectList" or field_data.__class__.__name__ == "ObjectManyList":
+                            to_many_objects.append((sub_object, field_data))
+
+                # DO OBJECT
+                if obj_to_commit.__status__ == EntityStatus.modified:
+
+                    # GET IDS FROM RELACIONAL
+                    fields_one_to_one = [value for field, value in obj_to_commit.__dict__.items() if field.startswith(
+                        "__") and not field.endswith("__") and hasattr(value, "table") and value.__class__.__name__ == "Object"]
+
+                    if len(fields_one_to_one) > 0:
+                        for field_relacional in fields_one_to_one:
+                            if field_relacional.value and obj_to_commit.__dict__[field_relacional.reference] != field_relacional.value.__dict__[field_relacional.key]:
+                                obj_to_commit.__setattr__(
+                                    field_relacional.reference, field_relacional.value.__dict__[field_relacional.key])
+
+                    self.insert_query(obj_to_commit)
+
+                # DO AFTER ACTIONS - ONE-TO-MANY AND MANY-TO-MANY
+                for to_many_object in to_many_objects:
+
+                    sub_object = to_many_object[0]
+                    field_data = to_many_object[1]
+
+                    # ONE TO MANY
+                    if field_data.__class__.__name__ == "ObjectList":
+
+                        # SET MANY FORIGN KEY FROM PK ONE
+                        setattr(sub_object, field_data.key,
+                                obj_to_commit.__dict__[field_data.reference])
+
+                        # INSERT OR UPDATE
                         self.insert_query(sub_object)
+
+                    # MANY TO MANY
+                    if field_data.__class__.__name__ == "ObjectManyList":
+
+                        if obj_to_commit.__status__ == EntityStatus.modified:
+
+                            # INSERT OR UPDATE
+                            self.insert_query(sub_object)
+
+                        # MAKE MANY TO MANY
+                        self.many_to_many_query(
+                            field_data, obj_to_commit, sub_object)
+
         self._db.commit()
 
     def add(self, obj=None):
         try:
             if obj != None:
                 if isinstance(obj, self._class):
-                    obj.__status__ == EntityStatus.modified
-                    self.__commit__.append(obj)
+                    obj.__status__ = EntityStatus.modified
+                    if not obj in self.__commit__:
+                        self.__queue__.append(obj)
                 else:
                     raise Exception("{} table requires {} object".format(
                         self._table, self._class.__name__))
             return None
         except Exception as e:
             raise e
+
+
+    def delete(self, obj=None):
+        try:
+            if obj != None:
+                if isinstance(obj, self._class):
+                    obj.__status__ = EntityStatus.deleted
+                    if not obj in self.__commit__:
+                        self.__queue__.append(obj)
+                else:
+                    raise Exception("{} table requires {} object".format(
+                        self._table, self._class.__name__))
+            return None
+        except Exception as e:
+            raise e
+
 
     @property
     def first(self):
@@ -366,6 +496,7 @@ class Connection():
             print(e)
             print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
 
+
     @property
     def all(self):
         query = self._write_select_query()
@@ -375,6 +506,7 @@ class Connection():
         except Exception as e:
             print(e)
             print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
+
 
     # EXECUÇÃO DE COMANDO
     @property
@@ -391,6 +523,7 @@ class Connection():
         if model:
             return self.__fill(result, model)
         return result
+
 
     def __fill(self, data, model):
         object_list = ListType(context=self, type=model)
@@ -414,4 +547,5 @@ class Connection():
                         raise e
             except Exception as e:
                 print("Error check row {}".format(row))
+                raise e
         return object_list

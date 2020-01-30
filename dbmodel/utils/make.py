@@ -8,7 +8,7 @@ import mysql.connector as mariadb
 from dbmodel.utils.inflector import Inflector, Portugues
 
 
-def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False, db_ssl_ca=None, db_ssl_cert=None, db_ssl_key=None):
+def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False, db_ssl_ca=None, db_ssl_cert=None, db_ssl_key=None, date_format="%d/%m/%Y %H:%M:%S"):
 
     _inflector = Inflector(Portugues)
 
@@ -56,14 +56,33 @@ def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False,
     models = []
 
     for table in tables:
+
+        referenced_table = []
+
         classname = _inflector.classify(table["TABLE_NAME"])
-        table_relationships_n_to_one = [
+
+        table_relationships_one_to_one = [
             relationship for relationship in relationships if relationship["table_name"] == table["TABLE_NAME"]]
+
         table_relationships_one_to_n = [
             relationship for relationship in relationships if relationship["referenced_table_name"] == table["TABLE_NAME"]]
 
+        table_relationships_n_to_n = []
+
+        # CHECK AND MAKE LIST FOR MANY TO MANY RELATION
+        if table["TABLE_NAME"] == "usuarios":
+            for to_many_relation in table_relationships_one_to_n:
+                table_columns_to_many = [column for column in columns if column["TABLE_NAME"] == to_many_relation["table_name"]]
+                # CHECK IF HAS 2 FIELDS AND ALL FIELDS ARE PRIMARY AND NOT NULL
+                if len(table_columns_to_many) == 2 and all([col["COLUMN_KEY"] == 'PRI' and col["IS_NULLABLE"]=="NO" for col in table_columns_to_many]):
+                    table_relationships_to_many = [
+                        relationship for relationship in relationships if relationship["table_name"] == to_many_relation["table_name"] and relationship["referenced_table_name"] != table["TABLE_NAME"]][0]
+                    table_relationships_n_to_n.append({"name": table_relationships_to_many["referenced_table_name"], "table": table_relationships_to_many["referenced_table_name"], "intermediate": to_many_relation["table_name"], "key": to_many_relation["column_name"], "reference": to_many_relation["referenced_column_name"], "inter_key" : table_relationships_to_many["column_name"], "end_key": table_relationships_to_many["referenced_column_name"]})
+
+
         table_columns = [
             column for column in columns if column["TABLE_NAME"] == table["TABLE_NAME"]]
+
         path_entitie = "{}/{}.py".format(model_path, classname.lower())
         models.append("from model.{} import {}".format(
             classname.lower(), classname))
@@ -92,6 +111,8 @@ def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False,
                     decorator = "@Float"
 
                 colum_config = []
+                if "datetime" in table_column["COLUMN_TYPE"]:
+                    colum_config.append("format='{}'".format(date_format))
                 if table_column["COLUMN_KEY"] == 'PRI':
                     colum_config.append("pk=True")
                 if table_column["COLUMN_KEY"] == "MUL":
@@ -115,11 +136,12 @@ def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False,
                 entitie.write("\n\tdef {}(self): pass".format(
                     table_column["COLUMN_NAME"]))
 
-            if len(table_relationships_n_to_one) > 0:
+            if len(table_relationships_one_to_one) > 0:
                 entitie.write("\n\n\t# One-to-One")
 
-            for table_relationship in table_relationships_n_to_one:
+            for table_relationship in table_relationships_one_to_one:
                 if table_relationship["referenced_table_name"] != table["TABLE_NAME"]:
+                    referenced_table.append(table_relationship["referenced_table_name"])
                     entitie.write("\n\n\t@Object(name=\"{}\", key=\"{}\", reference=\"{}\", table=\"{}\")".format(_inflector.classify(
                         table_relationship["referenced_table_name"]), table_relationship["referenced_column_name"], table_relationship["column_name"], table_relationship["referenced_table_name"]))
                     entitie.write("\n\tdef {}(self): pass".format(
@@ -129,16 +151,28 @@ def Make(dir, db_user, db_password, db_host, db_port, db_database, db_ssl=False,
                 entitie.write("\n\n\t# One-to-many")
 
             for table_relationship in table_relationships_one_to_n:
-                if table_relationship["table_name"] != table["TABLE_NAME"]:
-                    entitie.write("\n\n\t@ObjectList(name=\"{}\", key=\"{}\", reference=\"{}\", table=\"{}\")".format(_inflector.classify(
-                        table_relationship["table_name"]), table_relationship["column_name"], table_relationship["referenced_column_name"], table_relationship["table_name"]))
+
+                entitie.write("\n\n\t@ObjectList(name=\"{}\", key=\"{}\", reference=\"{}\", table=\"{}\")".format(_inflector.classify(
+                    table_relationship["table_name"]), table_relationship["column_name"], table_relationship["referenced_column_name"], table_relationship["table_name"]))
+
+                if table_relationship["table_name"] != table["TABLE_NAME"] and not table_relationship["table_name"] in referenced_table:
                     entitie.write("\n\tdef {}(self): pass".format(
                         table_relationship["table_name"]))
                 else:
-                    entitie.write("\n\n\t@ObjectList(name=\"{}\", key=\"{}\", reference=\"{}\", table=\"{}\")".format(_inflector.classify(
-                        table_relationship["table_name"]), table_relationship["column_name"], table_relationship["referenced_column_name"], table_relationship["table_name"]))
-                    entitie.write("\n\tdef {}(self): pass".format(
-                        table_relationship["constraint_name"].replace("FK_", "").replace("fk_", "")))
+                    rel_name = table_relationship["constraint_name"].replace(table["TABLE_NAME"], "").replace("FK_", "").replace("fk_", "").replace("__","_")
+                    rel_name = rel_name[1:] if rel_name.startswith("_") else rel_name[:-1] if rel_name.endswith("_") else rel_name
+                    entitie.write("\n\tdef {}(self): pass".format(rel_name))
+
+                referenced_table.append(table_relationship["table_name"])
+
+            if len(table_relationships_n_to_n) > 0:
+                entitie.write("\n\n\t# Many-to-many")
+
+            for table_relationship in table_relationships_n_to_n:
+                entitie.write("\n\n\t@ObjectManyList(name=\"{}\", key=\"{}\", reference=\"{}\", table=\"{}\", intermediate=\"{}\", inter_key=\"{}\", end_key=\"{}\")".format(_inflector.classify(
+                    table_relationship["name"]), table_relationship["key"], table_relationship["reference"], table_relationship["table"], table_relationship["intermediate"], table_relationship["inter_key"], table_relationship["end_key"]))
+                entitie.write("\n\tdef {}(self): pass".format(
+                    table_relationship["name"]))
 
             entitie.write("\n")
     # init model path

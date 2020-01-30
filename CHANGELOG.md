@@ -1,12 +1,17 @@
 # CHANGELOG
 
+### 0.0.5
+* Suporte a Relacionamento Many-to-Many
+* Gravação de alterações em Objetos Relacionais One-to-One
+* Utilização Foreign Key Name em relacionamentos duplos ou para mesma tabela
+* Suporte Exclusão de Objeto
+
 ### 0.0.4
 * Correção Comparação de Objetos e PK's Diferentes
 
 ### 0.0.3
 * Melhoria na importação de objetos relacionais
 * Identificação de alteração em objetos relacionais
-* Relacionamento N para N
 
 ### 0.0.2
 * Modulo de Criação de Objetos a partir do banco de dados

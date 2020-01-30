@@ -23,7 +23,7 @@ class Entity(object):
                     if self.__dict__["__%s" % item].name and not self.__dict__["__%s" % item].type:
                         self.__dict__["__%s" % item].type = getattr(__import__('model.{0}'.format(self.__dict__["__%s" % item].name.lower(
                         )), fromlist=[self.__dict__["__%s" % item].name]), self.__dict__["__%s" % item].name)
-                    self.__dict__[item] = None if self.__dict__["__%s" % item].__class__.__name__ != "ObjectList" else ListType(
+                    self.__dict__[item] = None if self.__dict__["__%s" % item].__class__.__name__ != "ObjectList" and self.__dict__["__%s" % item].__class__.__name__ != "ObjectManyList" else ListType(
                         context=self, type=self.__dict__["__%s" % item].type)
                     if item in kw:
                         filled = True
@@ -47,10 +47,23 @@ class Entity(object):
             ".")[0] in value[0]} for item in sorted(kw) if "." in item and not "%s." % self.__table__ in item}
         for _table, _data in relation_kw.items():
             field = self.__getattribute__("__%s" % _table)
+
             if field.__class__.__name__ == "Object":
                 self.__dict__[_table] = field.type(context=self, **_data)
+
             if field.__class__.__name__ == "ObjectList":
-                self.__dict__[_table].append(field.type(context=self, **_data))
+                object = field.type(context=self, **_data)
+                object_exists = [obj for obj in self.__dict__[_table] if all([getattr(
+                    obj, key) == object.__dict__[key] for key in object.__primary_key__])]
+                if len(object_exists) == 0:
+                    self.__dict__[_table].append(object)
+
+            if field.__class__.__name__ == "ObjectManyList":
+                object = field.type(context=self, **_data)
+                object_exists = [obj for obj in self.__dict__[_table] if all([getattr(
+                    obj, key) == object.__dict__[key] for key in object.__primary_key__])]
+                if len(object_exists) == 0:
+                    self.__dict__[_table].append(object)
 
     def __setattr__(self, item, value):
         try:
@@ -58,30 +71,48 @@ class Entity(object):
                 if hasattr(self, "__%s" % item):
                     self.__status__ = EntityStatus.modified
                     field = self.__getattribute__("__%s" % item)
-                    if field.type and field.__class__.__name__ is "ObjectList" and isinstance(value, list):
+                    if field.type and (field.__class__.__name__ is "ObjectList" or field.__class__.__name__ is "ObjectManyList") and isinstance(value, list):
                         for item_list in value:
+
                             if isinstance(item_list, dict):
                                 self.__dict__[item].append(
                                     field.type(context=self, **item_list))
+
                             if isinstance(item_list, field.type):
                                 item_list.__context__ = self
                                 self.__dict__[item].append(item_list)
                     else:
+
                         if field.type and isinstance(value, dict):
                             field.value = field.type(context=self, **value)
                         else:
                             if field.type and field.__class__.__name__ is "Object":
                                 value.__context__ = self
                             field.value = value
+
+                        # APPEND TO COMMIT
+                        if field.type:
+                            object_exists = [
+                                obj for obj in self.__commit__ if obj == value]
+                            if len(object_exists) == 0:
+                                self.__commit__.append(value)
+                            else:
+                                object_exists[0] = value
+
+                            # SET FOREIGN KEY
+                            if field.__class__.__name__ is "Object" and self.__dict__[field.reference] != value.__dict__[field.key]:
+                                self.__setattr__(field.reference, value.__dict__[field.key])
+
                         self.__dict__[item] = field.value
 
                     if self.__context__:
-                        object_exit = [
+                        object_exists = [
                             obj for obj in self.__context__.__commit__ if obj == self]
-                        if len(object_exit) == 0:
+
+                        if len(object_exists) == 0:
                             self.__context__.__commit__.append(self)
                         else:
-                            object_exit[0] = self
+                            object_exists[0] = self
                 else:
                     raise Exception("%s field does not exist" % item)
             else:
