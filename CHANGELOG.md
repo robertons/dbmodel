@@ -7,6 +7,7 @@
 * Suporte Exclusão de Objeto
 * Suporte a Count no Select
 * Suporte a criação de Alias com Condição
+* Melhoria preenchimentos objetos relacionais
 
 ### 0.0.4
 * Correção Comparação de Objetos e PK's Diferentes
