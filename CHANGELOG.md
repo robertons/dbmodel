@@ -5,6 +5,8 @@
 * Gravação de alterações em Objetos Relacionais One-to-One
 * Utilização Foreign Key Name em relacionamentos duplos ou para mesma tabela
 * Suporte Exclusão de Objeto
+* Suporte a Count no Select
+* Suporte a criação de Alias com Condição
 
 ### 0.0.4
 * Correção Comparação de Objetos e PK's Diferentes

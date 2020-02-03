@@ -36,6 +36,7 @@ class Connection():
                 self._table = name
                 self._distinct = None
                 self._select = None
+                self._alias = None
                 self._where = None
                 self._having = None
                 self._orhaving = None
@@ -79,7 +80,9 @@ class Connection():
             return field
         elif field.split(".")[0] in self._class.__dict__:
             return field
-        # TODO VALIDADE FIELD WITH FUNCTION
+        elif self._alias and field in [alias[0] for alias in self._alias]:
+            return field
+        # TO-DO VALIDADE FIELD WITH FUNCTION
         return field
 
     def __valid_field(self, field):
@@ -141,6 +144,17 @@ class Connection():
             return self
         except Exception as e:
             raise e
+
+    def alias(self, name, condition):
+        try:
+            if not self._alias:
+                self._alias = [(condition ,name)]
+            else:
+                self._alias.append((condition ,name))
+            return self
+        except Exception as e:
+            raise e
+
 
     def where(self, *fields):
         try:
@@ -278,6 +292,62 @@ class Connection():
             else:
                 _SELECT = ", ".join(
                     [_selected for _selected in self._select if not "." in _selected or "%s." % self._table in _selected])
+
+        if self._distinct and len(self._distinct) > 0:
+            _SELECT = "{}, {}".format("DISTINCT({})".format(
+                ",".join(self._distinct)), _SELECT)
+
+        if self._alias and len(self._alias) > 0:
+            _SELECT = "{}, {}".format(_SELECT, ", ".join(["{} AS {}".format(alias[0], alias[1]) for alias in self._alias]))
+
+        _FROM = self._table
+
+        if self._join and len(self._join) > 0:
+            _SELECT, _FROM = self.format_join(
+                _SELECT, _FROM, self._join, "INNER")
+
+        if self._include and len(self._include) > 0:
+            _SELECT, _FROM = self.format_join(
+                _SELECT, _FROM, self._include, "LEFT")
+
+        _QUERY = "SELECT {} FROM {}".format(_SELECT, _FROM)
+
+        if self._where and len(self._where) > 0:
+            condition_table = ["".join(condition).strip(
+            ) for condition in self._where if not "." in condition[0] or "%s." % self._table in condition[0]]
+            if len(condition_table) > 0:
+                _WHERE = " AND ".join(condition_table)
+                _QUERY = "{} WHERE ({})".format(_QUERY, _WHERE)
+        if self._orwhere and len(self._orwhere) > 0:
+            _ORWHERE = " AND ".join(["".join(condition).strip(
+            ) for condition in self._orwhere if not "." in condition[0] or "%s." % self._table in condition[0]])
+            _QUERY = "{} OR ({})".format(_QUERY, _ORWHERE)
+        if self._groupby and len(self._groupby) > 0:
+            _GROUPBY = " ".join(self._groupby)
+            _QUERY = "{} GROUP BY {}".format(_QUERY, _GROUPBY)
+        if self._having and len(self._having) > 0:
+            _HAVING = " AND ".join(["".join(condition).strip(
+            ) for condition in self._having if not "." in condition[0] or "%s." % self._table in condition[0]])
+            _QUERY = "{} HAVING ({})".format(_QUERY, _HAVING)
+        if self._orhaving and len(self._orhaving) > 0:
+            _ORHAVING = " AND ".join(["".join(condition).strip(
+            ) for condition in self._orhaving if not "." in condition[0] or "%s." % self._table in condition[0]])
+            _QUERY = "{} OR ({})".format(_QUERY, _ORHAVING)
+        if self._orderby and len(self._orderby) > 0:
+            _ORDERBY = ", ".join(["".join(condition).strip()
+                                  for condition in self._orderby])
+            _QUERY = "{} ORDER BY {}".format(_QUERY, _ORDERBY)
+        if self._limit:
+            _QUERY = "{} LIMIT {},{}".format(
+                _QUERY, self._limit[0], self._limit[1])
+        return _QUERY
+
+    def _write_count_query(self, object=True):
+
+        self.__valid_table()
+
+        # FORMATA SELECT QUERY
+        _SELECT = " COUNT(*) "
 
         if self._distinct and len(self._distinct) > 0:
             _SELECT = "{}, {}".format("DISTINCT({})".format(
@@ -507,6 +577,16 @@ class Connection():
             print(e)
             print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
 
+    @property
+    def count(self):
+        query = self._write_count_query()
+        try:
+            result = self._db.fetchall(query)
+            return result[0]["COUNT(*)"]
+        except Exception as e:
+            print(e)
+            print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
+
 
     # EXECUÇÃO DE COMANDO
     @property
@@ -532,9 +612,13 @@ class Connection():
                 row = {k: v for k, v in row.items() if v is not None}
                 object_exit = [obj for obj in object_list if all([getattr(
                     obj, key) == row["%s.%s" % (self._table, key)] for key in self._class.__primary_key__])]
+
                 if len(object_exit) == 0:
                     try:
                         obj = model(context=self, **row)
+                        if self._alias and len(self._alias) > 0:
+                            for alias in  self._alias:
+                                obj.__dict__[alias[1]] = row[alias[1]]
                         object_list.append(obj)
                     except Exception as e:
                         print("Error fill object row {}".format(row))

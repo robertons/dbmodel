@@ -43,27 +43,29 @@ class Entity(object):
             raise e
 
     def __setrelattr__(self, **kw):
-        relation_kw = {item.split(".")[0]: {value[0].split(".")[1]: value[1] for value in kw.items() if item.split(
-            ".")[0] in value[0]} for item in sorted(kw) if "." in item and not "%s." % self.__table__ in item}
-        for _table, _data in relation_kw.items():
-            field = self.__getattribute__("__%s" % _table)
+        rel_kw = {item.split(".")[0] : { } for item in kw if "." in item and not "%s." % self.__table__ in item}
+        if len(rel_kw)>0:
+            for _table in rel_kw:
+                _data = {key.split(".")[1] : value for key, value in kw.items() if key.startswith("{}.".format(_table))}
+                if len(_data) > 0:
+                    field = self.__getattribute__("__%s" % _table)
 
-            if field.__class__.__name__ == "Object":
-                self.__dict__[_table] = field.type(context=self, **_data)
+                    if field.__class__.__name__ == "Object":
+                        self.__dict__[_table] = field.type(context=self, **_data)
 
-            if field.__class__.__name__ == "ObjectList":
-                object = field.type(context=self, **_data)
-                object_exists = [obj for obj in self.__dict__[_table] if all([getattr(
-                    obj, key) == object.__dict__[key] for key in object.__primary_key__])]
-                if len(object_exists) == 0:
-                    self.__dict__[_table].append(object)
+                    if field.__class__.__name__ == "ObjectList":
+                        object = field.type(context=self, **_data)
+                        object_exists = [obj for obj in self.__dict__[_table] if all([getattr(
+                            obj, key) == object.__dict__[key] for key in object.__primary_key__])]
+                        if len(object_exists) == 0:
+                            self.__dict__[_table].append(object)
 
-            if field.__class__.__name__ == "ObjectManyList":
-                object = field.type(context=self, **_data)
-                object_exists = [obj for obj in self.__dict__[_table] if all([getattr(
-                    obj, key) == object.__dict__[key] for key in object.__primary_key__])]
-                if len(object_exists) == 0:
-                    self.__dict__[_table].append(object)
+                    if field.__class__.__name__ == "ObjectManyList":
+                        object = field.type(context=self, **_data)
+                        object_exists = [obj for obj in self.__dict__[_table] if all([getattr(
+                            obj, key) == object.__dict__[key] for key in object.__primary_key__])]
+                        if len(object_exists) == 0:
+                            self.__dict__[_table].append(object)
 
     def __setattr__(self, item, value):
         try:
