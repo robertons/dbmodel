@@ -168,7 +168,11 @@ class Connection():
             if not self._where or len(self._where) == 0:
                 raise Exception(
                     "To use ORWHERE required use before WHERE clause")
-            self._orwhere = self.__check_fields(*fields, check_operator=True)
+            condition = self.__check_fields(*fields, check_operator=True)
+            if self._orwhere:
+                self._orwhere.append(condition)
+            else:
+                self._orwhere = [condition]
             return self
         except Exception as e:
             raise e
@@ -185,7 +189,11 @@ class Connection():
             if not self._having or len(self._having) == 0:
                 raise Exception(
                     "To use ORHAVING required use before HAVING clause")
-            self._orhaving = self.__check_fields(*fields, check_operator=True)
+            condition = self.__check_fields(*fields, check_operator=True)
+            if self._orhaving:
+                self._orhaving.append(condition)
+            else:
+                self._orhaving = [condition]
             return self
         except Exception as e:
             raise e
@@ -319,8 +327,8 @@ class Connection():
                 _WHERE = " AND ".join(condition_table)
                 _QUERY = "{} WHERE ({})".format(_QUERY, _WHERE)
         if self._orwhere and len(self._orwhere) > 0:
-            _ORWHERE = " AND ".join(["".join(condition).strip(
-            ) for condition in self._orwhere if not "." in condition[0] or "%s." % self._table in condition[0]])
+            # BLOCKS OR WHERE
+            _ORWHERE = ") OR (".join([ " AND ".join(["".join(condition) for condition in block]) for block in self._orwhere])
             _QUERY = "{} OR ({})".format(_QUERY, _ORWHERE)
         if self._groupby and len(self._groupby) > 0:
             _GROUPBY = " ".join(self._groupby)
@@ -330,8 +338,8 @@ class Connection():
             ) for condition in self._having if not "." in condition[0] or "%s." % self._table in condition[0]])
             _QUERY = "{} HAVING ({})".format(_QUERY, _HAVING)
         if self._orhaving and len(self._orhaving) > 0:
-            _ORHAVING = " AND ".join(["".join(condition).strip(
-            ) for condition in self._orhaving if not "." in condition[0] or "%s." % self._table in condition[0]])
+            # BLOCKS OR HAVING
+            _ORHAVING = ") OR (".join([ " AND ".join(["".join(condition) for condition in block]) for block in self._orhaving])
             _QUERY = "{} OR ({})".format(_QUERY, _ORHAVING)
         if self._orderby and len(self._orderby) > 0:
             _ORDERBY = ", ".join(["".join(condition).strip()
@@ -372,16 +380,16 @@ class Connection():
                 _WHERE = " AND ".join(condition_table)
                 _QUERY = "{} WHERE ({})".format(_QUERY, _WHERE)
         if self._orwhere and len(self._orwhere) > 0:
-            _ORWHERE = " AND ".join(["".join(condition).strip(
-            ) for condition in self._orwhere if not "." in condition[0] or "%s." % self._table in condition[0]])
+            # BLOCKS OR WHERE
+            _ORWHERE = ") OR (".join([ " AND ".join(["".join(condition) for condition in block]) for block in self._orwhere])
             _QUERY = "{} OR ({})".format(_QUERY, _ORWHERE)
         if self._groupby and len(self._groupby) > 0:
             _GROUPBY = " ".join(self._groupby)
             _QUERY = "{} GROUP BY {}".format(_QUERY, _GROUPBY)
-        if self._having and len(self._having) > 0:
-            _HAVING = " AND ".join(["".join(condition).strip(
-            ) for condition in self._having if not "." in condition[0] or "%s." % self._table in condition[0]])
-            _QUERY = "{} HAVING ({})".format(_QUERY, _HAVING)
+        if self._orhaving and len(self._orhaving) > 0:
+            # BLOCKS OR HAVING
+            _ORHAVING = ") OR (".join([ " AND ".join(["".join(condition) for condition in block]) for block in self._orhaving])
+            _QUERY = "{} OR ({})".format(_QUERY, _ORHAVING)
         if self._orhaving and len(self._orhaving) > 0:
             _ORHAVING = " AND ".join(["".join(condition).strip(
             ) for condition in self._orhaving if not "." in condition[0] or "%s." % self._table in condition[0]])
@@ -563,9 +571,7 @@ class Connection():
             result = self.__fill(self._db.fetchall(query), self._class)
             return result[0] if len(result) > 0 else None
         except Exception as e:
-            print(e)
-            print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
-
+            raise type(e)(e.message + "\n\n ERRO QUERY: \n\n {} \n\n".format(query))
 
     @property
     def all(self):
@@ -574,8 +580,7 @@ class Connection():
             result = self._db.fetchall(query)
             return self.__fill(result, self._class)
         except Exception as e:
-            print(e)
-            print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
+            raise type(e)(e.message + "\n\n ERRO QUERY: \n\n {} \n\n".format(query))
 
     @property
     def count(self):
@@ -584,8 +589,7 @@ class Connection():
             result = self._db.fetchall(query)
             return result[0]["COUNT(*)"]
         except Exception as e:
-            print(e)
-            print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
+            raise type(e)(e.message + "\n\n ERRO QUERY: \n\n {} \n\n".format(query))
 
 
     # EXECUÇÃO DE COMANDO
@@ -595,8 +599,7 @@ class Connection():
         try:
             return self._db.fetchall(self._write_select_query(False))
         except Exception as e:
-            print(e)
-            print("\n\n ERRO QUERY: \n\n {} \n\n".format(query))
+            raise type(e)(e.message + "\n\n ERRO QUERY: \n\n {} \n\n".format(query))
 
     def query(self, query, model=None):
         result = self._db.fetchall(query)
@@ -621,15 +624,12 @@ class Connection():
                                 obj.__dict__[alias[1]] = row[alias[1]]
                         object_list.append(obj)
                     except Exception as e:
-                        print("Error fill object row {}".format(row))
-                        raise e
+                        raise type(e)(e.message + "\n\nError fill object row {}".format(row))
                 else:
                     try:
                         object_exit[0].__setrelattr__(**row)
                     except Exception as e:
-                        print("Error fill relational row {}".format(row))
-                        raise e
+                        raise type(e)(e.message + "\n\nError fill relational row {}".format(row))
             except Exception as e:
-                print("Error check row {}".format(row))
-                raise e
+                raise type(e)(e.message + "\n\nError check row {}".format(row))
         return object_list

@@ -19,6 +19,7 @@ class ValidateValue:
         self.not_null = not_null
         self.precision = precision
         self.scale = scale
+        self.format = format
         self.key = key
         self.reference = reference
         self.table = table
