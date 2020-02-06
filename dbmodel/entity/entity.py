@@ -84,26 +84,26 @@ class Entity(object):
                                 item_list.__context__ = self
                                 self.__dict__[item].append(item_list)
                     else:
-
                         if field.type and isinstance(value, dict):
                             field.value = field.type(context=self, **value)
+                        elif field.type and value.__class__.__name__ is "Object":
+                            value.__context__ = self
+                            field.value = value
                         else:
-                            if field.type and field.__class__.__name__ is "Object":
-                                value.__context__ = self
                             field.value = value
 
                         # APPEND TO COMMIT
-                        if field.type:
+                        if field.type and field.value:
                             object_exists = [
-                                obj for obj in self.__commit__ if obj == value]
+                                obj for obj in self.__commit__ if obj == field.value]
                             if len(object_exists) == 0:
-                                self.__commit__.append(value)
+                                self.__commit__.append(field.value)
                             else:
-                                object_exists[0] = value
+                                object_exists[0] = field.value
 
                             # SET FOREIGN KEY
-                            if field.__class__.__name__ is "Object" and self.__dict__[field.reference] != value.__dict__[field.key]:
-                                self.__setattr__(field.reference, value.__dict__[field.key])
+                            #if field.__class__.__name__ is "Object" and self.__dict__[field.reference] != field.value.__dict__[field.key]:
+                            #    self.__setattr__(field.reference, field.value.__dict__[field.key])
 
                         self.__dict__[item] = field.value
 

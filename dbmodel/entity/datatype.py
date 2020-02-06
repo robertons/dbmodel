@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import decimal
+
 import datetime
 
 from dbmodel.entity.status import EntityStatus
@@ -100,9 +101,9 @@ class Decimal(ValidateValue):
 
     def __setattr__(self, attr, data):
         if attr == "value" and data is not None:
-            if not isinstance(data, decimal.Decimal):
+            if not isinstance(data, Decimal):
                 try:
-                    data = decimal.Decimal(data)
+                    data = decimal.Decimal(str(round(float(data), self.scale)))
                 except ValueError as e:
                     raise Exception("%s requires Decimal" % self.field_name)
         super().__setattr__(attr, data)
@@ -117,7 +118,7 @@ class Float(ValidateValue):
         if attr == "value" and data is not None:
             if not isinstance(data, float):
                 try:
-                    data = float(data)
+                    data = round(float(data), self.scale)
                 except ValueError as e:
                     raise Exception("%s requires Float" % self.field_name)
         super().__setattr__(attr, data)

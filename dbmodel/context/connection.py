@@ -422,6 +422,7 @@ class Connection():
             onkeys=", ".join(["{0}=%({0})s".format(field)
                               for field in obj_data.keys()])
         )
+
         last_row_id = self._db.save(sql_statement, obj_data)
         if last_row_id:
             obj.__dict__[obj.__primary_key__[0]] = last_row_id
@@ -493,14 +494,13 @@ class Connection():
                 if obj_to_commit.__status__ == EntityStatus.modified:
 
                     # GET IDS FROM RELACIONAL
-                    fields_one_to_one = [value for field, value in obj_to_commit.__dict__.items() if field.startswith(
-                        "__") and not field.endswith("__") and hasattr(value, "table") and value.__class__.__name__ == "Object"]
+                    fields_one_to_one = [(field.replace("__",""), value) for field, value in obj_to_commit.__dict__.items() if field.startswith("__") and not field.endswith("__") and hasattr(value, "table") and value.__class__.__name__ == "Object"]
 
                     if len(fields_one_to_one) > 0:
-                        for field_relacional in fields_one_to_one:
-                            if field_relacional.value and obj_to_commit.__dict__[field_relacional.reference] != field_relacional.value.__dict__[field_relacional.key]:
-                                obj_to_commit.__setattr__(
-                                    field_relacional.reference, field_relacional.value.__dict__[field_relacional.key])
+                       for item_field in fields_one_to_one:
+                           field_name, field_relacional = item_field
+                           if obj_to_commit.__dict__[field_name] and obj_to_commit.__dict__[field_name].__status__ == EntityStatus.modified and obj_to_commit.__dict__[field_name] and obj_to_commit.__dict__[field_relacional.reference] != obj_to_commit.__dict__[field_name].__dict__[field_relacional.key]:
+                               obj_to_commit.__setattr__(field_relacional.reference, obj_to_commit.__dict__[field_name].__dict__[field_relacional.key])
 
                     self.insert_query(obj_to_commit)
 
@@ -541,6 +541,9 @@ class Connection():
                     obj.__status__ = EntityStatus.modified
                     if not obj in self.__commit__:
                         self.__queue__.append(obj)
+                    else:
+                         pos = self.__commit__.index(obj)
+                         self.__commit__[pos] = obj
                 else:
                     raise Exception("{} table requires {} object".format(
                         self._table, self._class.__name__))
@@ -556,6 +559,9 @@ class Connection():
                     obj.__status__ = EntityStatus.deleted
                     if not obj in self.__commit__:
                         self.__queue__.append(obj)
+                    else:
+                         pos = self.__commit__.index(obj)
+                         self.__commit__[pos] = obj
                 else:
                     raise Exception("{} table requires {} object".format(
                         self._table, self._class.__name__))
