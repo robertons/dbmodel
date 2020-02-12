@@ -412,6 +412,25 @@ class Connection():
         )
         self._db.save(sql_statement, {})
 
+    def delete_condition(self):
+        _WHERE = None
+        if self._where and len(self._where) > 0:
+            condition_table = ["".join(condition).strip(
+            ) for condition in self._where if not "." in condition[0] or "%s." % self._table in condition[0]]
+            if len(condition_table) > 0:
+                _WHERE = " AND ".join(condition_table)
+        if _WHERE and self._orwhere and len(self._orwhere) > 0:
+            # BLOCKS OR WHERE
+            _ORWHERE = ") OR (".join([ " AND ".join(["".join(condition) for condition in block]) for block in self._orwhere])
+            _WHERE = "({}) OR ({})".format(_WHERE, _ORWHERE)
+
+        if _WHERE:
+            sql_statement = "DELETE FROM {table} WHERE ({keys})".format(
+                table=self._table,
+                keys=_WHERE
+            )
+            self._db.save(sql_statement, {})
+
     def insert_query(self, obj):
         obj_data = obj.toDB()
         sql_statement = "INSERT INTO {table} ({keys}) VALUES ({values}) ON DUPLICATE KEY UPDATE {onkeys}".format(
@@ -455,6 +474,8 @@ class Connection():
 
         # DO OBJECTS COMMITS
         for obj_to_commit in self.__commit__:
+            # Objects Commited
+            commited = []
 
             # DELETE OBJECT
             if obj_to_commit.__status__ == EntityStatus.deleted:
@@ -485,6 +506,7 @@ class Connection():
                             # IF HAS MODIFIED DO SQL ACTION
                             if sub_object.__status__ == EntityStatus.modified:
                                 self.insert_query(sub_object)
+                                commited.append(sub_object)
 
                         # IF ONE TO MANY OR MANY-TO-MANY APPEND TO DO ACTION AFTER PRINCIPAL OBJECT
                         if field_data.__class__.__name__ == "ObjectList" or field_data.__class__.__name__ == "ObjectManyList":
@@ -503,6 +525,7 @@ class Connection():
                                obj_to_commit.__setattr__(field_relacional.reference, obj_to_commit.__dict__[field_name].__dict__[field_relacional.key])
 
                     self.insert_query(obj_to_commit)
+                    commited.append(obj_to_commit)
 
                 # DO AFTER ACTIONS - ONE-TO-MANY AND MANY-TO-MANY
                 for to_many_object in to_many_objects:
@@ -519,6 +542,7 @@ class Connection():
 
                         # INSERT OR UPDATE
                         self.insert_query(sub_object)
+                        commited.append(sub_object)
 
                     # MANY TO MANY
                     if field_data.__class__.__name__ == "ObjectManyList":
@@ -527,12 +551,17 @@ class Connection():
 
                             # INSERT OR UPDATE
                             self.insert_query(sub_object)
+                            commited.append(sub_object)
 
                         # MAKE MANY TO MANY
                         self.many_to_many_query(
                             field_data, obj_to_commit, sub_object)
 
         self._db.commit()
+
+        # RESET STATUS OBJECTS
+        for object in commited:
+            object.__status__ = EntityStatus.filled
 
     def add(self, obj=None):
         try:
@@ -569,9 +598,14 @@ class Connection():
         except Exception as e:
             raise e
 
+    @property
+    def clear(self):
+        self.delete_condition()
 
     @property
     def first(self):
+        if not self._include:
+            self._limit = (0,1)
         query = self._write_select_query()
         try:
             result = self.__fill(self._db.fetchall(query), self._class)
