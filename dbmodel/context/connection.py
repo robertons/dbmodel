@@ -509,7 +509,7 @@ class Connection():
                                 commited.append(sub_object)
 
                         # IF ONE TO MANY OR MANY-TO-MANY APPEND TO DO ACTION AFTER PRINCIPAL OBJECT
-                        if field_data.__class__.__name__ == "ObjectList" or field_data.__class__.__name__ == "ObjectManyList":
+                        if (sub_object.__status__ == EntityStatus.modified and field_data.__class__.__name__ == "ObjectList") or field_data.__class__.__name__ == "ObjectManyList":
                             to_many_objects.append((sub_object, field_data))
 
                 # DO OBJECT
