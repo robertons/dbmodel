@@ -464,6 +464,98 @@ class Connection():
 
     # EXECUÇÃO DE COMANDO
 
+    def DoObject(self, obj_to_commit):
+
+        # Objects Commited
+        commited = []
+
+        # DELETE OBJECT
+        if obj_to_commit.__status__ == EntityStatus.deleted:
+            self.delete_query(obj_to_commit)
+            obj_to_commit = None
+
+        # INSERT OR UPDATE OBJECT
+        elif obj_to_commit.__status__ == EntityStatus.modified or obj_to_commit.__status__ == EntityStatus.addedobject:
+
+            # DEFINE ORDER ACTIONS
+            to_many_objects = []
+
+            # GET RELACIONAL OBJECTS
+            sub_objects = [sub_obj for sub_obj in obj_to_commit.__commit__]
+            for sub_object in sub_objects:
+
+                field_data = [value for field, value in obj_to_commit.__dict__.items() if field.startswith(
+                    "__") and not field.endswith("__") and hasattr(value, "table") and value.table == sub_object.__table__]
+
+                # OBJECT RELACIONAL
+                if len(field_data) == 1:
+
+                    field_data = field_data[0]
+
+                    # IF ONE-TO-ONE DO ACTION BEFORE
+                    if field_data.__class__.__name__ == "Object":
+
+                        # IF HAS MODIFIED DO SQL ACTION
+                        if sub_object.__status__ == EntityStatus.modified:
+                            # self.insert_query(sub_object)
+                            # commited.append(sub_object)
+                            sub_commited = self.DoObject(sub_object)
+                            commited = commited + sub_commited
+
+                    # IF ONE TO MANY OR MANY-TO-MANY APPEND TO DO ACTION AFTER PRINCIPAL OBJECT
+                    if (sub_object.__status__ == EntityStatus.modified and field_data.__class__.__name__ == "ObjectList") or field_data.__class__.__name__ == "ObjectManyList":
+                        to_many_objects.append((sub_object, field_data))
+
+            # DO OBJECT
+            if obj_to_commit.__status__ == EntityStatus.modified:
+
+                # GET IDS FROM RELACIONAL
+                fields_one_to_one = [(field.replace("__",""), value) for field, value in obj_to_commit.__dict__.items() if field.startswith("__") and not field.endswith("__") and hasattr(value, "table") and value.__class__.__name__ == "Object"]
+
+                if len(fields_one_to_one) > 0:
+                   for item_field in fields_one_to_one:
+                       field_name, field_relacional = item_field
+                       if obj_to_commit.__dict__[field_name] and obj_to_commit.__dict__[field_name].__status__ == EntityStatus.modified and obj_to_commit.__dict__[field_name] and obj_to_commit.__dict__[field_relacional.reference] != obj_to_commit.__dict__[field_name].__dict__[field_relacional.key]:
+                           obj_to_commit.__setattr__(field_relacional.reference, obj_to_commit.__dict__[field_name].__dict__[field_relacional.key])
+
+                self.insert_query(obj_to_commit)
+                commited.append(obj_to_commit)
+
+            # DO AFTER ACTIONS - ONE-TO-MANY AND MANY-TO-MANY
+            for to_many_object in to_many_objects:
+
+                sub_object = to_many_object[0]
+                field_data = to_many_object[1]
+
+                # ONE TO MANY
+                if field_data.__class__.__name__ == "ObjectList":
+
+                    # SET MANY FORIGN KEY FROM PK ONE
+                    setattr(sub_object, field_data.key,
+                            obj_to_commit.__dict__[field_data.reference])
+
+                    # INSERT OR UPDATE
+                    # self.insert_query(sub_object)
+                    # commited.append(sub_object)
+                    sub_commited = self.DoObject(sub_object)
+                    commited = commited + sub_commited
+
+                # MANY TO MANY
+                if field_data.__class__.__name__ == "ObjectManyList":
+
+                    if obj_to_commit.__status__ == EntityStatus.modified:
+
+                        # INSERT OR UPDATE
+                        # self.insert_query(sub_object)
+                        # commited.append(sub_object)
+                        sub_commited = self.DoObject(sub_object)
+                        commited = commited + sub_commited
+
+                    # MAKE MANY TO MANY
+                    self.many_to_many_query(
+                        field_data, obj_to_commit, sub_object)
+        return commited
+
     def save(self):
 
         # DO QUEUE FIRST
@@ -474,88 +566,7 @@ class Connection():
 
         # DO OBJECTS COMMITS
         for obj_to_commit in self.__commit__:
-            # Objects Commited
-            commited = []
-
-            # DELETE OBJECT
-            if obj_to_commit.__status__ == EntityStatus.deleted:
-                self.delete_query(obj_to_commit)
-                obj_to_commit = None
-
-            # INSERT OR UPDATE OBJECT
-            elif obj_to_commit.__status__ == EntityStatus.modified or obj_to_commit.__status__ == EntityStatus.addedobject:
-
-                # DEFINE ORDER ACTIONS
-                to_many_objects = []
-
-                # GET RELACIONAL OBJECTS
-                sub_objects = [sub_obj for sub_obj in obj_to_commit.__commit__]
-                for sub_object in sub_objects:
-
-                    field_data = [value for field, value in obj_to_commit.__dict__.items() if field.startswith(
-                        "__") and not field.endswith("__") and hasattr(value, "table") and value.table == sub_object.__table__]
-
-                    # OBJECT RELACIONAL
-                    if len(field_data) == 1:
-
-                        field_data = field_data[0]
-
-                        # IF ONE-TO-ONE DO ACTION BEFORE
-                        if field_data.__class__.__name__ == "Object":
-
-                            # IF HAS MODIFIED DO SQL ACTION
-                            if sub_object.__status__ == EntityStatus.modified:
-                                self.insert_query(sub_object)
-                                commited.append(sub_object)
-
-                        # IF ONE TO MANY OR MANY-TO-MANY APPEND TO DO ACTION AFTER PRINCIPAL OBJECT
-                        if (sub_object.__status__ == EntityStatus.modified and field_data.__class__.__name__ == "ObjectList") or field_data.__class__.__name__ == "ObjectManyList":
-                            to_many_objects.append((sub_object, field_data))
-
-                # DO OBJECT
-                if obj_to_commit.__status__ == EntityStatus.modified:
-
-                    # GET IDS FROM RELACIONAL
-                    fields_one_to_one = [(field.replace("__",""), value) for field, value in obj_to_commit.__dict__.items() if field.startswith("__") and not field.endswith("__") and hasattr(value, "table") and value.__class__.__name__ == "Object"]
-
-                    if len(fields_one_to_one) > 0:
-                       for item_field in fields_one_to_one:
-                           field_name, field_relacional = item_field
-                           if obj_to_commit.__dict__[field_name] and obj_to_commit.__dict__[field_name].__status__ == EntityStatus.modified and obj_to_commit.__dict__[field_name] and obj_to_commit.__dict__[field_relacional.reference] != obj_to_commit.__dict__[field_name].__dict__[field_relacional.key]:
-                               obj_to_commit.__setattr__(field_relacional.reference, obj_to_commit.__dict__[field_name].__dict__[field_relacional.key])
-
-                    self.insert_query(obj_to_commit)
-                    commited.append(obj_to_commit)
-
-                # DO AFTER ACTIONS - ONE-TO-MANY AND MANY-TO-MANY
-                for to_many_object in to_many_objects:
-
-                    sub_object = to_many_object[0]
-                    field_data = to_many_object[1]
-
-                    # ONE TO MANY
-                    if field_data.__class__.__name__ == "ObjectList":
-
-                        # SET MANY FORIGN KEY FROM PK ONE
-                        setattr(sub_object, field_data.key,
-                                obj_to_commit.__dict__[field_data.reference])
-
-                        # INSERT OR UPDATE
-                        self.insert_query(sub_object)
-                        commited.append(sub_object)
-
-                    # MANY TO MANY
-                    if field_data.__class__.__name__ == "ObjectManyList":
-
-                        if obj_to_commit.__status__ == EntityStatus.modified:
-
-                            # INSERT OR UPDATE
-                            self.insert_query(sub_object)
-                            commited.append(sub_object)
-
-                        # MAKE MANY TO MANY
-                        self.many_to_many_query(
-                            field_data, obj_to_commit, sub_object)
+            commited = self.DoObject(obj_to_commit)
 
         self._db.commit()
 
