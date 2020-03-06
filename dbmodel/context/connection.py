@@ -16,8 +16,9 @@ relational_types = ["Object", "ObjectList", "ObjectManyList"]
 
 class Connection():
 
-    def __init__(self, db_user=None, db_password=None, db_host=None, db_port=None, db_database=None, db_ssl=False, db_ssl_ca=None, db_ssl_cert=None, db_ssl_key=None):
+    def __init__(self, db_user=None, db_password=None, db_host=None, db_port=None, db_database=None, db_ssl=False, db_ssl_ca=None, db_ssl_cert=None, db_ssl_key=None, debug = False):
         try:
+            self._debug = debug
             self._inflector = Inflector(Portugues)
             self._db = DataBase(db_user, db_password, db_host, db_port,
                                 db_database, db_ssl, db_ssl_ca, db_ssl_cert, db_ssl_key)
@@ -348,6 +349,10 @@ class Connection():
         if self._limit:
             _QUERY = "{} LIMIT {},{}".format(
                 _QUERY, self._limit[0], self._limit[1])
+
+        if self._debug:
+            print("\n\n\nDEBUG DATABASE QUERY:\n\n{}\n\n\n".format(_QUERY))
+
         return _QUERY
 
     def _write_count_query(self, object=True):
@@ -401,6 +406,10 @@ class Connection():
         if self._limit:
             _QUERY = "{} LIMIT {},{}".format(
                 _QUERY, self._limit[0], self._limit[1])
+
+        if self._debug:
+            print("\n\n\nDEBUG DATABASE QUERY:\n\n{}\n\n\n".format(_QUERY))
+
         return _QUERY
 
     def delete_query(self, obj):
@@ -410,6 +419,10 @@ class Connection():
             table=obj.__table__,
             keys=", ".join(delete_keys)
         )
+
+        if self._debug:
+            print("\n\n\nDEBUG DATABASE QUERY:\n\n{}\n\n\n".format(sql_statement))
+
         self._db.save(sql_statement, {})
 
     def delete_condition(self):
@@ -429,6 +442,10 @@ class Connection():
                 table=self._table,
                 keys=_WHERE
             )
+
+            if self._debug:
+                print("\n\n\nDEBUG DATABASE QUERY:\n\n{}\n\n\n".format(sql_statement))
+
             self._db.save(sql_statement, {})
 
     def insert_query(self, obj):
@@ -441,6 +458,9 @@ class Connection():
             onkeys=", ".join(["{0}=%({0})s".format(field)
                               for field in obj_data.keys()])
         )
+
+        if self._debug:
+            print("\n\n\nDEBUG DATABASE QUERY:\n\n{}\n\nDEBUG DATA BASE OBJECT DATA:\n\n{}\n\n\n".format(sql_statement, obj_data))
 
         last_row_id = self._db.save(sql_statement, obj_data)
         if last_row_id:
@@ -459,6 +479,9 @@ class Connection():
             onkeys=", ".join(["{0}=%({0})s".format(field)
                               for field in intermediate_data.keys()])
         )
+
+        if self._debug:
+            print("\n\n\nDEBUG DATABASE QUERY:\n\n{}\n\nDEBUG DATA BASE OBJECT DATA:\n\n{}\n\n\n".format(sql_statement, intermediate_data))
 
         self._db.save(sql_statement, intermediate_data)
 

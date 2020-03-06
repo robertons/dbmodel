@@ -37,8 +37,14 @@ class Entity(object):
             if len(kw) > 0:
                 filled = True
                 self.__setrelattr__(**kw)
-            if self.__context__ and filled:
-                self.__status__ = EntityStatus.filled
+
+            # TEST IF CONTEXT IS DATABASE
+            __DB_CONTEXT = self.__context__
+            if __DB_CONTEXT and filled:
+                while __DB_CONTEXT:
+                    if __DB_CONTEXT.__class__.__name__ == "Connection" and filled:
+                        self.__status__ = EntityStatus.filled
+                    __DB_CONTEXT = __DB_CONTEXT.__context__ if '__context__' in  __DB_CONTEXT.__dict__ else None
         except Exception as e:
             raise e
 
@@ -67,6 +73,19 @@ class Entity(object):
                         if len(object_exists) == 0:
                             self.__dict__[_table].append(object)
 
+    def __append_commit__(self, field):
+        # APPEND TO COMMIT
+        if field.type and field.value:
+            object_exists = [
+                obj for obj in self.__commit__ if obj == field.value]
+            if len(object_exists) == 0:
+                self.__commit__.append(field.value)
+            else:
+                object_exists[0] = field.value
+            # SET FOREIGN KEY
+            #if field.__class__.__name__ is "Object" and self.__dict__[field.reference] != field.value.__dict__[field.key]:
+            #    self.__setattr__(field.reference, field.value.__dict__[field.key])
+
     def __setattr__(self, item, value):
         try:
             if not item.startswith("__"):
@@ -92,18 +111,7 @@ class Entity(object):
                         else:
                             field.value = value
 
-                        # APPEND TO COMMIT
-                        if field.type and field.value:
-                            object_exists = [
-                                obj for obj in self.__commit__ if obj == field.value]
-                            if len(object_exists) == 0:
-                                self.__commit__.append(field.value)
-                            else:
-                                object_exists[0] = field.value
-
-                            # SET FOREIGN KEY
-                            #if field.__class__.__name__ is "Object" and self.__dict__[field.reference] != field.value.__dict__[field.key]:
-                            #    self.__setattr__(field.reference, field.value.__dict__[field.key])
+                        self.__append_commit__(field)
 
                         self.__dict__[item] = field.value
 
