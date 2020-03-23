@@ -580,6 +580,8 @@ class Connection():
         return commited
 
     def save(self):
+        # OBJECTS COMMITED
+        commited = []
 
         # DO QUEUE FIRST
         for insert in self.__queue__:
