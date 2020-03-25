@@ -9,7 +9,7 @@ from dbmodel.utils.inflector import Inflector, Portugues
 
 def reference_name(table, list, name, fk_name):
     __table_referenced = name
-    if not __table_referenced in list:
+    if not __table_referenced in list and __table_referenced != table:
         list.append(__table_referenced)
         return __table_referenced
     else:
