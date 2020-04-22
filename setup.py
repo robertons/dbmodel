@@ -9,7 +9,7 @@ with open('requirements.txt') as reqs:
 
 setuptools.setup(
     name='dbmodel',
-    version='0.0.5',
+    version='0.0.6',
     description='Python DataBase Entity Model',
     author='Roberto Neves',
     author_email='robertonsilva@gmail.com',

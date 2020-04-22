@@ -181,6 +181,10 @@ class Portugues(Base):
         ]
 
         irregular_words = {
+            'app':'apps',
+            'server': 'servers',
+            'mediaserver': 'mediaservers',
+            'streamer': 'streamers',
             'mal': 'males',
             'consul': 'consules',
             'mel': 'meis',
@@ -267,7 +271,11 @@ class Portugues(Base):
             ]
 
             irregular_words = {
-                'mal': 'males',
+                'apps':'app',
+                'servers': 'server',
+                'mediaservers': 'mediaserver',
+                'streamers': 'streamer',
+                'males': 'mal',
                 'consules': 'consul',
                 'meis': 'mel',
                 'cais': 'cal',

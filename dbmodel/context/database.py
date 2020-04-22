@@ -22,10 +22,10 @@ class DataBase():
             raise e
 
     # INICIA CURSOR
-    def new_cursor(self):
+    @property
+    def cursor(self):
         try:
-            new_cursor = self._conn.cursor(dictionary=True)
-            return new_cursor
+            return self._conn.cursor(dictionary=True)
         except mariadb.Error as e:
             raise e
         except Exception as e:
@@ -44,7 +44,7 @@ class DataBase():
 
     # EXECUÇÃO SELECT SQL
     def fetchall(self, sql_query):
-        cursor = self.new_cursor()
+        cursor = self.cursor
         try:
             cursor.execute(sql_query)
             registros = cursor.fetchall()
@@ -58,7 +58,7 @@ class DataBase():
 
     # EXECUÇÃO SELECT SQL
     def save(self, sql_statement, data):
-        cursor = self.new_cursor()
+        cursor = self.cursor
         try:
             cursor.execute(sql_statement, data)
             return cursor.lastrowid if cursor.lastrowid > 0 else None

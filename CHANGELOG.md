@@ -1,5 +1,14 @@
 # CHANGELOG
 
+### 0.0.6
+* Melhoria no Cursor
+* Melhoria no Make Model
+* Correção em Objetos Comitados
+* Novas Palavras Irregulares no Inflector
+* Modo Depuração
+* Recursão em Objetos alterados
+
+
 ### 0.0.5
 * Suporte a Relacionamento Many-to-Many
 * Gravação de alterações em Objetos Relacionais One-to-One
