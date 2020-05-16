@@ -181,6 +181,7 @@ class Portugues(Base):
         ]
 
         irregular_words = {
+            'feed': 'feeds',
             'app':'apps',
             'server': 'servers',
             'mediaserver': 'mediaservers',
@@ -271,6 +272,7 @@ class Portugues(Base):
             ]
 
             irregular_words = {
+                'feeds': 'feed',
                 'apps':'app',
                 'servers': 'server',
                 'mediaservers': 'mediaserver',
