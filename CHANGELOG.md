@@ -1,13 +1,20 @@
 # CHANGELOG
 
+### 0.0.9
+* Correção Delete com duas ou mais PK's
+
+### 0.0.8
+* Correção Delete com duas ou mais PK's
+
+### 0.0.7
+* Modo Depuração
+* Recursão em Objetos alterados
+
 ### 0.0.6
 * Melhoria no Cursor
 * Melhoria no Make Model
 * Correção em Objetos Comitados
 * Novas Palavras Irregulares no Inflector
-* Modo Depuração
-* Recursão em Objetos alterados
-
 
 ### 0.0.5
 * Suporte a Relacionamento Many-to-Many

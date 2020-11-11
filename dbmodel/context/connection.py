@@ -417,7 +417,7 @@ class Connection():
                                              key]) for key in obj.__primary_key__]
         sql_statement = "DELETE FROM {table} WHERE {keys}".format(
             table=obj.__table__,
-            keys=", ".join(delete_keys)
+            keys=" AND ".join(delete_keys)
         )
 
         if self._debug:
