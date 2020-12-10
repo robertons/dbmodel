@@ -16,12 +16,12 @@ relational_types = ["Object", "ObjectList", "ObjectManyList"]
 
 class Connection():
 
-    def __init__(self, db_user=None, db_password=None, db_host=None, db_port=None, db_database=None, db_ssl=False, db_ssl_ca=None, db_ssl_cert=None, db_ssl_key=None, debug = False):
+    def __init__(self, db_user=None, db_password=None, db_host=None, db_port=None, db_database=None, db_ssl=False, db_ssl_ca=None, db_ssl_cert=None, db_ssl_key=None, debug=False, db_charset='utf8'):
         try:
             self._debug = debug
             self._inflector = Inflector(Portugues)
             self._db = DataBase(db_user, db_password, db_host, db_port,
-                                db_database, db_ssl, db_ssl_ca, db_ssl_cert, db_ssl_key)
+                                db_database, db_ssl, db_ssl_ca, db_ssl_cert, db_ssl_key, db_charset)
             self.__commit__ = []
             self.__queue__ = []
         except Exception as e:

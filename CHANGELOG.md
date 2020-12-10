@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.1.1
+* Suporte Chartset utf8mb4 Handshake
+
 ### 0.1.0
 * Suporte Alteração Charset da Conexão
 
