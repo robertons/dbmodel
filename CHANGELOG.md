@@ -1,5 +1,17 @@
 # CHANGELOG
 
+### 0.1.5
+* utf8mb4 working
+
+### 0.1.4
+* REMOVE CHANGES 0.1.3
+
+### 0.1.3
+* SET NAME, COLLATION BEFORE COMMIT
+
+### 0.1.2
+* Use_unicode=True
+
 ### 0.1.1
 * Suporte Chartset utf8mb4 Handshake
 

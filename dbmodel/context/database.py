@@ -7,13 +7,14 @@ class DataBase():
     # Init
     def __init__(self, db_user=None, db_password=None, db_host=None, db_port=None, db_database=None, db_ssl=False, db_ssl_ca=None, db_ssl_cert=None, db_ssl_key=None, db_charset='utf8'):
         try:
+            self._charset = db_charset
             self._deletelist = []
             if not db_ssl:
                 self._conn = mariadb.connect(
-                    user=db_user, password=db_password, host=db_host, port=db_port, database=db_database, charset=db_charset)
+                    user=db_user, password=db_password, host=db_host, port=db_port, database=db_database, use_unicode=True)
             else:
                 self._conn = mariadb.connect(user=db_user, password=db_password, host=db_host, port=db_port,
-                                             database=db_database, ssl_ca=db_ssl_ca, ssl_cert=db_ssl_cert, ssl_key=db_ssl_key, charset=db_charset)
+                                             database=db_database, ssl_ca=db_ssl_ca, ssl_cert=db_ssl_cert, ssl_key=db_ssl_key, use_unicode=True)
         # ERRO CONEXÃO COM BANCO DE DADOS
         except mariadb.Error as e:
             raise e
@@ -25,7 +26,8 @@ class DataBase():
     @property
     def cursor(self):
         try:
-            return self._conn.cursor(dictionary=True)
+            cursor = self._conn.cursor(dictionary=True)
+            return cursor
         except mariadb.Error as e:
             raise e
         except Exception as e:
