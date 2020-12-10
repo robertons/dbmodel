@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.1.0
+* Suporte Alteração Charset da Conexão
+
 ### 0.0.9
 * Correção Delete com duas ou mais PK's
 
